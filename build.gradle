@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+}
+
+allprojects {
+    group 'cn.edu.pku.hcst'
+    version '1.0'
+
+    sourceCompatibility = 1.11
+
+    repositories {
+        mavenCentral()
+    }
+
+}
+
