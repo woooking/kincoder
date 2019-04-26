@@ -7,4 +7,9 @@ dependencies {
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.6'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.6'
     compileOnly group: 'org.jetbrains', name: 'annotations', version: '17.0.0'
+    compile group: 'com.github.javaparser', name: 'javaparser-symbol-solver-core', version: '3.13.9'
+    compile group: 'com.google.inject', name: 'guice', version: '4.2.2'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.26'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.8'
 }

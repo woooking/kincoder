@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 @Wither
 public class ReturnStmt implements Stmt {
     @Nullable
-    private final Expr cond;
+    private final Expr value;
 
     @Override
     public <A, R> R accept(Visitor<A, R> visitor, A arg) {
