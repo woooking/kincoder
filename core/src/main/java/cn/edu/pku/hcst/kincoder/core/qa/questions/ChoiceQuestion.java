@@ -1,100 +1,108 @@
 package cn.edu.pku.hcst.kincoder.core.qa.questions;
 
+import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.ArrayType;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.ReferenceType;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.Type;
 import cn.edu.pku.hcst.kincoder.common.utils.ElementUtil;
 import cn.edu.pku.hcst.kincoder.core.Components;
 import cn.edu.pku.hcst.kincoder.core.qa.Context;
 import cn.edu.pku.hcst.kincoder.core.qa.Question;
-import cn.edu.pku.hcst.kincoder.core.qa.questions.choices.EnumChoice;
-import cn.edu.pku.hcst.kincoder.core.qa.questions.choices.MethodChoice;
-import cn.edu.pku.hcst.kincoder.core.qa.questions.choices.VariableChoice;
+import cn.edu.pku.hcst.kincoder.core.qa.questions.choices.*;
+import cn.edu.pku.hcst.kincoder.core.rules.CreateMethodJudger;
+import cn.edu.pku.hcst.kincoder.core.rules.GetMethodJudger;
+import cn.edu.pku.hcst.kincoder.core.rules.LoadMethodJudger;
 import cn.edu.pku.hcst.kincoder.core.utils.CodeUtil;
 import cn.edu.pku.hcst.kincoder.kg.entity.MethodEntity;
 import cn.edu.pku.hcst.kincoder.kg.repository.Repository;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Streams;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toSet;
+
+@Slf4j
 @Value
 public class ChoiceQuestion implements Question {
-    private final String content;
-    private final List<Choice> choices;
+	private final String content;
+	private final List<Choice> choices;
 
-    private MethodCategory category(MethodEntity method) {
+	private static MethodCategory category(MethodEntity method) {
+		CreateMethodJudger createMethodJudger = Components.getInstance(CreateMethodJudger.class);
+		GetMethodJudger getMethodJudger = Components.getInstance(GetMethodJudger.class);
+		LoadMethodJudger loadMethodJudger = Components.getInstance(LoadMethodJudger.class);
 
-    }
+		if (createMethodJudger.judge(method)) return MethodCategory.CREATE;
+		if (getMethodJudger.judge(method)) return MethodCategory.GET;
+		if (loadMethodJudger.judge(method)) return MethodCategory.LOAD;
+		return MethodCategory.UNKNOWN;
+	}
 
-    public static ChoiceQuestion forType(Context ctx, Type type, Boolean recommend) {
-        if (type instanceof ReferenceType) {
-            var vars = ctx.findVariables(type);
-            var producers = CodeUtil.producers(type);
+	// type非基本类型
+	public static ChoiceQuestion forType(Context ctx, Type type, Boolean recommend) {
+		var repository = Components.getInstance(Repository.class);
 
-            if (recommend) {
-                // t是枚举类型，则添加枚举选项
-                var enumEntity = Components.getInstance(Repository.class).getEnumEntity(type.describe());
-                var enumChoice = enumEntity != null ? List.<Choice>of(new EnumChoice(enumEntity)) : List.<Choice>of();
+		if (type instanceof ReferenceType) {
+			var vars = ctx.findVariables(type);
+			var producers = CodeUtil.producers(type);
 
-                var simpleName = ElementUtil.qualifiedName2Simple(type.describe()).toLowerCase();
-                var content = String.format("Which %s?", simpleName);
+			// t是枚举类型，则添加枚举选项
+			var enumEntity = repository.getEnumEntity(type.describe());
+			var enumChoice = enumEntity != null ? List.<Choice>of(new EnumChoice(enumEntity)) : List.<Choice>of();
+			var simpleName = ElementUtil.qualifiedName2Simple(type.describe()).toLowerCase();
+			var content = String.format("Which %s?", simpleName);
 
-                var choices = Stream.concat(
-                    Stream.concat(
-                        vars.stream().map(VariableChoice::new),
-                        enumChoice.stream()
-                    ),
-                    producers.stream().map(MethodChoice::new)
-                ).collect(Collectors.toList());
-                return new ChoiceQuestion(content, choices);
-            } else {
-                var cases = producers.stream().collect(Collectors.groupingBy())
-                val cases:Map[MethodCategory, Set[MethodEntity]] =producers.groupBy {
-                    case m
-                        if CreateMethodJudger.judge(m) =>MethodCategory.Create
-                    case m
-                        if LoadMethodJudger.judge(m) =>MethodCategory.Load
-                    case m
-                        if GetMethodJudger.judge(m) =>MethodCategory.Get
-                    case _ =>
-                        OtherType
-                }
-                val methodCategoryChoices = cases.flatMap {
-                    case (OtherType,m) =>
-                        if (Config.printUnCategorisedMethods) {
-                            println("----- UnCategorised -----")
-                            m.foreach(f = > {
-                                println(f.getQualifiedSignature)
-                                println(Option(f.getJavadoc).getOrElse(""))
-                            })
-                            println("-------------------------")
-                        }
-                        Seq()
-                    case (category,ms) =>Seq(MethodCategoryChoice(bt, category, ms))
-                }
+			if (recommend) {
+				var choices = Streams.concat(
+					vars.stream().map(VariableChoice::new),
+					enumChoice.stream(),
+					producers.stream().map(MethodChoice::new)
+				).collect(Collectors.toList());
+				return new ChoiceQuestion(content, choices);
+			} else {
+				var cases = producers.stream().collect(groupingBy(ChoiceQuestion::category, toSet()));
 
-                // t是枚举类型，则添加枚举选项
-                val enumChoice = methodEntityRepository.getType(t) match {
-                    case e:
-                        EnumEntity =>
-                        EnumChoice(e)::Nil
-                    case _ =>
-                        Nil
-                }
+				var methodCategoryChoices = cases.entrySet().stream().flatMap(e -> {
+					var category = e.getKey();
+					var ms = e.getValue();
+					if (category == MethodCategory.UNKNOWN) {
+						log.debug("----- UnCategorised -----");
+						ms.forEach(m -> {
+							log.debug(m.getQualifiedSignature());
+							if (m.getJavadoc() != null) {
+								log.debug(m.getJavadoc().getDescription());
+							}
+						});
+						log.debug("-------------------------");
+						return Stream.of();
+					}
 
-                val simpleName = CodeUtil.qualifiedClassName2Simple(t).toLowerCase
-                val q = s "Which $simpleName?"
-                ChoiceQuestion(q, vars.toSeq.map(VariableChoice.apply)++enumChoice++methodCategoryChoices)
-            }
-        } else {
-            val vars = context.findVariables(at)
+					return Stream.of(new MethodCategoryChoice((ReferenceType) type, category, ms));
+				});
 
-            val simpleName = CodeUtil.qualifiedClassName2Simple(at.componentType.toString).toLowerCase
-            val q = s "Which ${simpleName}s?"
-            ChoiceQuestion(q, vars.toSeq.map(VariableChoice.apply) :+CreateArrayChoice(at))
-        }
-    }
+				var choices = Streams.concat(
+					vars.stream().map(VariableChoice::new),
+					enumChoice.stream(),
+					methodCategoryChoices
+				).collect(Collectors.toList());
+				return new ChoiceQuestion(content, choices);
+			}
+		} else {
+			// TODO: nested ArrayType
+			var vars = ctx.findVariables(type);
+			var simpleName = ElementUtil.qualifiedName2Simple(((ArrayType) type).getComponentType().describe()).toLowerCase();
+			var content = String.format("Which %s?", simpleName);
+
+			var choices = Streams.concat(
+				vars.stream().map(VariableChoice::new),
+				Stream.of(new CreateArrayChoice(((ArrayType) type)))
+			).collect(Collectors.toList());
+
+			return new ChoiceQuestion(content, choices);
+		}
+	}
 }

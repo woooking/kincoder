@@ -5,6 +5,7 @@ import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.ReferenceType;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.Type;
 import cn.edu.pku.hcst.kincoder.core.qa.Context;
 import cn.edu.pku.hcst.kincoder.core.qa.questions.Choice;
+import cn.edu.pku.hcst.kincoder.core.qa.questions.ChoiceQuestion;
 import cn.edu.pku.hcst.kincoder.core.qa.questions.ChoiceResult;
 import cn.edu.pku.hcst.kincoder.core.qa.questions.NewQuestion;
 import cn.edu.pku.hcst.kincoder.kg.entity.TypeEntity;
@@ -43,7 +44,7 @@ public class IterableChoice implements Choice {
         var targetType = (ReferenceType) Type.fromString(path.get(0).getQualifiedName());
         if (path.size() == 1) {
             if (recommendVar == null) {
-                return new NewQuestion(QAHelper.choiceQAForType(context, targetType, recommend))
+                return new NewQuestion(ChoiceQuestion.forType(ctx, targetType, recommend));
             } else {
                 Resolved(context.copy(pattern = context.pattern.fillHole(hole, recommendVar)), recommendVar)
             }
