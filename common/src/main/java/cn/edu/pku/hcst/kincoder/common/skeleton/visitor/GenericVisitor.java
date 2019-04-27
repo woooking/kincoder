@@ -93,6 +93,11 @@ public class GenericVisitor implements Visitor<Void, List<? extends Node>> {
     }
 
     @Override
+    public List<? extends Node> visit(StaticMethodCallExpr node, Void arg) {
+        return node.getArgs();
+    }
+
+    @Override
     public List<? extends Node> visit(ObjectCreationExpr node, Void arg) {
         return node.getArgs();
     }

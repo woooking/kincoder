@@ -34,6 +34,8 @@ public interface Visitor<A, R> {
 
     R visit(MethodCallExpr node, A arg);
 
+    R visit(StaticMethodCallExpr node, A arg);
+
     R visit(ObjectCreationExpr node, A arg);
 
     R visit(UnaryExpr node, A arg);

@@ -6,6 +6,7 @@ import cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.HoleExpr;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.stmt.BlockStmt;
 import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.NodeCollector;
 import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.ParentCollector;
+import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.ReplaceNodeVisitor;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
@@ -29,13 +30,10 @@ public class Skeleton {
         return new Skeleton(holeFactory, stmts, parentMap, holes);
     }
 
-    public Skeleton replaceNode() {
-
-    }
-
     public Skeleton fillHole(HoleExpr hole, Expr expr) {
-        var newStmts = FillHoleVisitor.fillHole(stmts, hole, expr)
-        Pattern(holeFactory, newStmts)
+        var visitor = new ReplaceNodeVisitor(hole, expr);
+        var newStmts = stmts.accept(visitor, null);
+        return Skeleton.create(holeFactory, newStmts);
     }
 
 }

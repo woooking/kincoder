@@ -1,0 +1,46 @@
+package cn.edu.pku.hcst.kincoder.common.utils;
+
+import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.Type;
+import lombok.experimental.UtilityClass;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+@UtilityClass
+public class ElementUtil {
+    Pattern methodPattern = Pattern.compile(".*\\(([a-zA-Z.,\\[\\] ]*)\\)");
+    /**
+     * 从类的全限定名称中提取简化名称，即以'.'分割后的最后一段字符串
+     * 例：
+     * Object => Object
+     * java.lang.Object => Object
+     * org.apache.poi.hssf.eventusermodel.EventWorkbookBuilder.SheetRecordCollectingListener => SheetRecordCollectingListener
+     * @param qualifiedName 类的全限定名称
+     * @return 类的简化名称
+     */
+    public String qualifiedName2Simple(String qualifiedName) {
+        var segments = qualifiedName.split("\\.");
+        return segments[segments.length - 1];
+    }
+
+    /**
+     * 从方法签名中提取参数类型列表
+     * 例：
+     * func() => []
+     * func(int, long) => ["int", "long"]
+     * org.test.func(java.lang.Object, float) => ["java.lang.Object", "float"]
+     * @param signature 方法的签名
+     * @return 参数类型列表
+     */
+    public List<Type> methodParams(String signature) {
+        var matcher = methodPattern.matcher(signature);
+        if (matcher.find()) {
+            var g = matcher.group(1);
+            return Arrays.stream(g.split(", ")).map(Type::fromString).collect(Collectors.toList());
+        } else {
+            throw new RuntimeException(String.format("Given string %s isn't a valid method signature", signature));
+        }
+    }
+}

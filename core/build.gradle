@@ -6,6 +6,8 @@ plugins {
 dependencies {
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.6'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.6'
+    compileOnly group: 'org.jetbrains', name: 'annotations', version: '17.0.0'
+    compile group: 'edu.stanford.nlp', name: 'stanford-corenlp', version: '3.9.2'
     compile project(':common')
     compile project(':knowledge-graph')
 }

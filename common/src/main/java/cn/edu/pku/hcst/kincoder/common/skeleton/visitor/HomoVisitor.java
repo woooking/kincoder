@@ -12,59 +12,61 @@ public interface HomoVisitor<A> {
 
     ExprStmt visit(ExprStmt node, A arg);
 
-     IfStmt visit(IfStmt node, A arg);
+    IfStmt visit(IfStmt node, A arg);
 
-     ForStmt visit(ForStmt node, A arg);
+    ForStmt visit(ForStmt node, A arg);
 
-     ForEachStmt visit(ForEachStmt node, A arg);
+    ForEachStmt visit(ForEachStmt node, A arg);
 
-     WhileStmt visit(WhileStmt node, A arg);
+    WhileStmt visit(WhileStmt node, A arg);
 
-     ReturnStmt visit(ReturnStmt node, A arg);
+    ReturnStmt visit(ReturnStmt node, A arg);
 
-     HoleExpr visit(HoleExpr node, A arg);
+    HoleExpr visit(HoleExpr node, A arg);
 
-     AssignExpr visit(AssignExpr node, A arg);
+    AssignExpr visit(AssignExpr node, A arg);
 
-     ArrayCreationExpr visit(ArrayCreationExpr node, A arg);
+    ArrayCreationExpr visit(ArrayCreationExpr node, A arg);
 
-     BinaryExpr visit(BinaryExpr node, A arg);
+    BinaryExpr visit(BinaryExpr node, A arg);
 
-     EnumConstantExpr visit(EnumConstantExpr node, A arg);
+    EnumConstantExpr visit(EnumConstantExpr node, A arg);
 
-     MethodCallExpr visit(MethodCallExpr node, A arg);
+    MethodCallExpr visit(MethodCallExpr node, A arg);
 
-     ObjectCreationExpr visit(ObjectCreationExpr node, A arg);
+    StaticMethodCallExpr visit(StaticMethodCallExpr node, A arg);
 
-     UnaryExpr visit(UnaryExpr node, A arg);
+    ObjectCreationExpr visit(ObjectCreationExpr node, A arg);
 
-     TypeNameExpr visit(TypeNameExpr node, A arg);
+    UnaryExpr visit(UnaryExpr node, A arg);
 
-     SimpleNameExpr visit(SimpleNameExpr node, A arg);
+    TypeNameExpr visit(TypeNameExpr node, A arg);
 
-     StaticFieldAccessExpr visit(StaticFieldAccessExpr node, A arg);
+    SimpleNameExpr visit(SimpleNameExpr node, A arg);
 
-     FieldAccessExpr visit(FieldAccessExpr node, A arg);
+    StaticFieldAccessExpr visit(StaticFieldAccessExpr node, A arg);
 
-     VarDeclExpr visit(VarDeclExpr node, A arg);
+    FieldAccessExpr visit(FieldAccessExpr node, A arg);
 
-     BooleanLiteral visit(BooleanLiteral node, A arg);
+    VarDeclExpr visit(VarDeclExpr node, A arg);
 
-     ByteLiteral visit(ByteLiteral node, A arg);
+    BooleanLiteral visit(BooleanLiteral node, A arg);
 
-     ShortLiteral visit(ShortLiteral node, A arg);
+    ByteLiteral visit(ByteLiteral node, A arg);
 
-     IntLiteral visit(IntLiteral node, A arg);
+    ShortLiteral visit(ShortLiteral node, A arg);
 
-     LongLiteral visit(LongLiteral node, A arg);
+    IntLiteral visit(IntLiteral node, A arg);
 
-     FloatLiteral visit(FloatLiteral node, A arg);
+    LongLiteral visit(LongLiteral node, A arg);
 
-     DoubleLiteral visit(DoubleLiteral node, A arg);
+    FloatLiteral visit(FloatLiteral node, A arg);
 
-     CharLiteral visit(CharLiteral node, A arg);
+    DoubleLiteral visit(DoubleLiteral node, A arg);
 
-     StringLiteral visit(StringLiteral node, A arg);
+    CharLiteral visit(CharLiteral node, A arg);
 
-     NullLiteral visit(NullLiteral node, A arg);
+    StringLiteral visit(StringLiteral node, A arg);
+
+    NullLiteral visit(NullLiteral node, A arg);
 }

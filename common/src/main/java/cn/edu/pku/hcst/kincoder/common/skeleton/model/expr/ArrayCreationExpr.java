@@ -12,7 +12,7 @@ import java.util.List;
 @Wither
 public class ArrayCreationExpr implements Expr<ArrayCreationExpr> {
     private final Type componentType;
-    private final List<Expr> inits;
+    private final List<Expr<?>> inits;
 
     @Override
     public <A, R> R accept(Visitor<A, R> visitor, A arg) {
