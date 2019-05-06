@@ -2,6 +2,9 @@ package cn.edu.pku.hcst.kincoder.common.utils;
 
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.Arg;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.*;
+import cn.edu.pku.hcst.kincoder.common.skeleton.model.stmt.BlockStmt;
+import cn.edu.pku.hcst.kincoder.common.skeleton.model.stmt.ForEachStmt;
+import cn.edu.pku.hcst.kincoder.common.skeleton.model.stmt.Stmt;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.ReferenceType;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.Type;
 import lombok.experimental.UtilityClass;
@@ -12,6 +15,10 @@ import java.util.List;
 public class CodeBuilder {
     public Arg arg(Type type, Expr value) {
         return new Arg(type, value);
+    }
+
+    public BlockStmt block(Stmt<?> ...stmts) {
+        return new BlockStmt(List.of(stmts));
     }
 
     public StaticMethodCallExpr call(ReferenceType declaredType, String simpleName, Arg... args) {
@@ -28,6 +35,10 @@ public class CodeBuilder {
 
     public EnumConstantExpr enumerate(ReferenceType enumType, NameOrHole<?> name) {
         return new EnumConstantExpr(enumType, name);
+    }
+
+    public ForEachStmt foreach(Type iteratedType, String variable, Expr<?> iterable, BlockStmt block) {
+        return new ForEachStmt(iteratedType, variable, iterable, block);
     }
 
     public SimpleNameExpr str2name(String s) {

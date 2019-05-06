@@ -111,4 +111,11 @@ public class CodeUtil {
 
         throw new UnsupportedOperationException(String.format("Producers not supported for type %s", type.describe()));
     }
+
+    public Type coreType(Type type) {
+    	if (type instanceof ReferenceType || type instanceof PrimitiveType) {
+    	    return type;
+        }
+    	return coreType(((ArrayType) type).getComponentType());
+    }
 }
