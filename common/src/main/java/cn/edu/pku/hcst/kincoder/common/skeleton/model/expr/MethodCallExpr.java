@@ -39,4 +39,9 @@ public class MethodCallExpr implements Expr<MethodCallExpr>, Callable {
         );
     }
 
+    @Override
+    public int findArgIndex(Arg arg) {
+        return args.indexOf(arg);
+    }
+
 }

@@ -11,7 +11,6 @@ import cn.edu.pku.hcst.kincoder.core.utils.CodeUtil;
 import lombok.Value;
 import lombok.experimental.Wither;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -23,7 +22,7 @@ public class Context {
 	private final Set<Pair<String, Type>> variables;
 	@Wither
 	private final Skeleton skeleton;
-	private final List<String> extendedTypes;
+	private final Set<String> extendedTypes;
 	private final NlpContext nlpCtx;
 
 	public Set<String> findVariables(Type type) {

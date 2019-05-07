@@ -1,0 +1,10 @@
+plugins {
+    id 'java'
+    id "io.freefair.lombok"
+}
+
+dependencies {
+    compileOnly group: 'org.jetbrains', name: 'annotations', version: '17.0.0'
+    compile project(':common')
+    compile project(':core')
+}

@@ -1,11 +1,14 @@
 package cn.edu.pku.hcst.kincoder.common.skeleton.visitor;
 
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.Arg;
+import cn.edu.pku.hcst.kincoder.common.skeleton.model.Node;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.*;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.literal.*;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.stmt.*;
 
 public interface Visitor<A, R> {
+    R visit(Node<?> node, A arg);
+
     R visit(Arg node, A arg);
 
     R visit(BlockStmt node, A arg);

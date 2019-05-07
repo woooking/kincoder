@@ -1,6 +1,7 @@
 package cn.edu.pku.hcst.kincoder.common.utils;
 
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.Type;
+import com.google.common.base.CaseFormat;
 import lombok.experimental.UtilityClass;
 
 import java.util.Arrays;
@@ -42,5 +43,9 @@ public class ElementUtil {
         } else {
             throw new RuntimeException(String.format("Given string %s isn't a valid method signature", signature));
         }
+    }
+
+    public String[] lowerCamelCaseToPhrase(String element) {
+        return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, element).split("_");
     }
 }

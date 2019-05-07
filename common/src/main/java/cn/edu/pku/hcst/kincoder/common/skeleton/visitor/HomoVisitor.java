@@ -1,11 +1,16 @@
 package cn.edu.pku.hcst.kincoder.common.skeleton.visitor;
 
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.Arg;
+import cn.edu.pku.hcst.kincoder.common.skeleton.model.Node;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.*;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.literal.*;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.stmt.*;
 
 public interface HomoVisitor<A> {
+    Node<?> visit(Node<?> node, A arg);
+
+    Expr<?> visit(Expr<?> node, A arg);
+
     Arg visit(Arg node, A arg);
 
     BlockStmt visit(BlockStmt node, A arg);

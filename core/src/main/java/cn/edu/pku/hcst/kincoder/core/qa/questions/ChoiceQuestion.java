@@ -3,6 +3,9 @@ package cn.edu.pku.hcst.kincoder.core.qa.questions;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.ArrayType;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.ReferenceType;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.Type;
+import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.Printer;
+import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.Printer.PrintConfig;
+import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.Printer.PrintContext;
 import cn.edu.pku.hcst.kincoder.common.utils.ElementUtil;
 import cn.edu.pku.hcst.kincoder.core.Components;
 import cn.edu.pku.hcst.kincoder.core.qa.Context;
@@ -28,81 +31,92 @@ import static java.util.stream.Collectors.toSet;
 @Slf4j
 @Value
 public class ChoiceQuestion implements Question {
-	private final String content;
-	private final List<Choice> choices;
+    private final String content;
+    private final List<Choice> choices;
 
-	private static MethodCategory category(MethodEntity method) {
-		CreateMethodJudger createMethodJudger = Components.getInstance(CreateMethodJudger.class);
-		GetMethodJudger getMethodJudger = Components.getInstance(GetMethodJudger.class);
-		LoadMethodJudger loadMethodJudger = Components.getInstance(LoadMethodJudger.class);
+    private static MethodCategory category(MethodEntity method) {
+        CreateMethodJudger createMethodJudger = Components.getInstance(CreateMethodJudger.class);
+        GetMethodJudger getMethodJudger = Components.getInstance(GetMethodJudger.class);
+        LoadMethodJudger loadMethodJudger = Components.getInstance(LoadMethodJudger.class);
 
-		if (createMethodJudger.judge(method)) return MethodCategory.CREATE;
-		if (getMethodJudger.judge(method)) return MethodCategory.GET;
-		if (loadMethodJudger.judge(method)) return MethodCategory.LOAD;
-		return MethodCategory.UNKNOWN;
-	}
+        if (createMethodJudger.judge(method)) return MethodCategory.CREATE;
+        if (getMethodJudger.judge(method)) return MethodCategory.GET;
+        if (loadMethodJudger.judge(method)) return MethodCategory.LOAD;
+        return MethodCategory.UNKNOWN;
+    }
 
-	// type非基本类型
-	public static ChoiceQuestion forType(Context ctx, Type type, Boolean recommend) {
-		var repository = Components.getInstance(Repository.class);
+    // type非基本类型
+    public static ChoiceQuestion forType(Context ctx, Type type, Boolean recommend) {
+        var repository = Components.getInstance(Repository.class);
 
-		if (type instanceof ReferenceType) {
-			var vars = ctx.findVariables(type);
-			var producers = CodeUtil.producers(type);
+        if (type instanceof ReferenceType) {
+            var vars = ctx.findVariables(type);
+            var producers = CodeUtil.producers(type);
 
-			// t是枚举类型，则添加枚举选项
-			var enumEntity = repository.getEnumEntity(type.describe());
-			var enumChoice = enumEntity != null ? List.<Choice>of(new EnumChoice(enumEntity)) : List.<Choice>of();
-			var simpleName = ElementUtil.qualifiedName2Simple(type.describe()).toLowerCase();
-			var content = String.format("Which %s?", simpleName);
+            // t是枚举类型，则添加枚举选项
+            var enumEntity = repository.getEnumEntity(type.describe());
+            var enumChoice = enumEntity != null ? List.<Choice>of(new EnumChoice(enumEntity)) : List.<Choice>of();
+            var simpleName = ElementUtil.qualifiedName2Simple(type.describe()).toLowerCase();
+            var content = String.format("Which %s?", simpleName);
 
-			if (recommend) {
-				var choices = Streams.concat(
-					vars.stream().map(VariableChoice::new),
-					enumChoice.stream(),
-					producers.stream().map(MethodChoice::new)
-				).collect(Collectors.toList());
-				return new ChoiceQuestion(content, choices);
-			} else {
-				var cases = producers.stream().collect(groupingBy(ChoiceQuestion::category, toSet()));
+            if (recommend) {
+                var choices = Streams.concat(
+                    vars.stream().map(VariableChoice::new),
+                    enumChoice.stream(),
+                    producers.stream().map(MethodChoice::new)
+                ).collect(Collectors.toList());
+                return new ChoiceQuestion(content, choices);
+            } else {
+                var cases = producers.stream().collect(groupingBy(ChoiceQuestion::category, toSet()));
 
-				var methodCategoryChoices = cases.entrySet().stream().flatMap(e -> {
-					var category = e.getKey();
-					var ms = e.getValue();
-					if (category == MethodCategory.UNKNOWN) {
-						log.debug("----- UnCategorised -----");
-						ms.forEach(m -> {
-							log.debug(m.getQualifiedSignature());
-							if (m.getJavadoc() != null) {
-								log.debug(m.getJavadoc().getDescription());
-							}
-						});
-						log.debug("-------------------------");
-						return Stream.of();
-					}
+                var methodCategoryChoices = cases.entrySet().stream().flatMap(e -> {
+                    var category = e.getKey();
+                    var ms = e.getValue();
+                    if (category == MethodCategory.UNKNOWN) {
+                        log.debug("----- UnCategorised -----");
+                        ms.forEach(m -> {
+                            log.debug(m.getQualifiedSignature());
+                            if (m.getJavadoc() != null) {
+                                log.debug(m.getJavadoc().getDescription());
+                            }
+                        });
+                        log.debug("-------------------------");
+                        return Stream.of();
+                    }
 
-					return Stream.of(new MethodCategoryChoice((ReferenceType) type, category, ms));
-				});
+                    return Stream.of(new MethodCategoryChoice((ReferenceType) type, category, ms));
+                });
 
-				var choices = Streams.concat(
-					vars.stream().map(VariableChoice::new),
-					enumChoice.stream(),
-					methodCategoryChoices
-				).collect(Collectors.toList());
-				return new ChoiceQuestion(content, choices);
-			}
-		} else {
-			// TODO: nested ArrayType
-			var vars = ctx.findVariables(type);
-			var simpleName = ElementUtil.qualifiedName2Simple(((ArrayType) type).getComponentType().describe()).toLowerCase();
-			var content = String.format("Which %s?", simpleName);
+                var choices = Streams.concat(
+                    vars.stream().map(VariableChoice::new),
+                    enumChoice.stream(),
+                    methodCategoryChoices
+                ).collect(Collectors.toList());
+                return new ChoiceQuestion(content, choices);
+            }
+        } else {
+            // TODO: nested ArrayType
+            var vars = ctx.findVariables(type);
+            var simpleName = ElementUtil.qualifiedName2Simple(((ArrayType) type).getComponentType().describe()).toLowerCase();
+            var content = String.format("Which %s?", simpleName);
 
-			var choices = Streams.concat(
-				vars.stream().map(VariableChoice::new),
-				Stream.of(new CreateArrayChoice(((ArrayType) type)))
-			).collect(Collectors.toList());
+            var choices = Streams.concat(
+                vars.stream().map(VariableChoice::new),
+                Stream.of(new CreateArrayChoice(((ArrayType) type)))
+            ).collect(Collectors.toList());
 
-			return new ChoiceQuestion(content, choices);
-		}
-	}
+            return new ChoiceQuestion(content, choices);
+        }
+    }
+
+    @Override
+    public String description() {
+        var printer = new Printer(PrintConfig.builder().build());
+        var choiceStringStream = choices.stream()
+            .map(c -> c instanceof RecommendChoice ? printer.visit(((RecommendChoice) c).getFilled(), new PrintContext("")) : c.toString());
+        return Streams.mapWithIndex(
+            choiceStringStream,
+            (c, i) -> String.format("#%s. %s", i + 1, c)
+        ).collect(Collectors.joining("\n"));
+    }
 }

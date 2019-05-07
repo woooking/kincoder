@@ -11,7 +11,7 @@ import lombok.Value;
 @Value
 public class RecommendChoice implements Choice {
     private final Context newCtx;
-    private final Expr filled;
+    private final Expr<?> filled;
     private final double score;
 
     @Override

@@ -2,7 +2,9 @@ package cn.edu.pku.hcst.kincoder.core.impl;
 
 import cn.edu.pku.hcst.kincoder.core.api.*;
 import cn.edu.pku.hcst.kincoder.core.impl.session.Session;
+import cn.edu.pku.hcst.kincoder.core.nlp.NlpService;
 import cn.edu.pku.hcst.kincoder.core.nlp.PatternMatcher;
+import cn.edu.pku.hcst.kincoder.core.qa.QuestionGenerator;
 import com.google.inject.Inject;
 
 import java.util.Map;
@@ -14,11 +16,15 @@ import java.util.concurrent.atomic.AtomicLong;
 public class KinCoderServiceImpl implements KinCoderService {
     private final ConcurrentMap<Long, Session> sessions = new ConcurrentHashMap<>();
     private final AtomicLong nextId = new AtomicLong();
+    private final NlpService nlpService;
+    private final QuestionGenerator questionGenerator;
     private final PatternMatcher patternMatcher;
     private final KinCoderConfig config;
 
     @Inject
-    public KinCoderServiceImpl(PatternMatcher patternMatcher, KinCoderConfig config) {
+    public KinCoderServiceImpl(NlpService nlpService, QuestionGenerator questionGenerator, PatternMatcher patternMatcher, KinCoderConfig config) {
+        this.nlpService = nlpService;
+        this.questionGenerator = questionGenerator;
         this.patternMatcher = patternMatcher;
         this.config = config;
     }
@@ -26,7 +32,7 @@ public class KinCoderServiceImpl implements KinCoderService {
     @Override
     public StartSessionResponse startSession(String query, Map<String, String> variables, Set<String> extendedTypes) {
         var results = patternMatcher.match(query, config.getPatternLimit());
-        var session = new Session(query, variables, extendedTypes, results);
+        var session = new Session(nlpService, questionGenerator, query, variables, extendedTypes, results);
         var sessionId = nextId.getAndIncrement();
         sessions.put(sessionId, session);
         return new StartSessionResponse(nextId.getAndIncrement(), results);
@@ -34,16 +40,22 @@ public class KinCoderServiceImpl implements KinCoderService {
 
     @Override
     public QAResponse selectPattern(long sessionId, int id) {
-        return null;
+        var session = sessions.get(sessionId);
+        if (session == null) return new ErrorResponse(String.format("No session with id %d", sessionId));
+        return session.selectSkeleton(id);
     }
 
     @Override
     public QAResponse response(long sessionId, String answer) {
-        return null;
+        var session = sessions.get(sessionId);
+        if (session == null) return new ErrorResponse(String.format("No session with id %d", sessionId));
+        return session.answer(answer);
     }
 
     @Override
     public UndoResponse undo(long sessionId) {
-        return null;
+        var session = sessions.get(sessionId);
+        if (session == null) return new ErrorResponse(String.format("No session with id %d", sessionId));
+        return session.undo();
     }
 }

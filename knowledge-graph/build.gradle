@@ -1,11 +1,10 @@
 
 plugins {
     id 'java'
+    id "io.freefair.lombok"
 }
 
 dependencies {
-    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.6'
-    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.6'
     compileOnly group: 'org.jetbrains', name: 'annotations', version: '17.0.0'
     compile group: 'org.neo4j', name: 'neo4j-ogm-core', version: '3.2.0-SNAPSHOT'
     compile group: 'org.neo4j', name: 'neo4j-ogm-bolt-driver', version: '3.2.0-SNAPSHOT'

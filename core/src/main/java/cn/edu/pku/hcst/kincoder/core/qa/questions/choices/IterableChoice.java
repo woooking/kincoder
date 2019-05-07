@@ -17,55 +17,59 @@ import java.util.List;
 
 import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.foreach;
 import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.str2name;
+import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.block;
+import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.v;
+import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.expr2stmt;
 
 @Value
 public class IterableChoice implements Choice {
-	private final List<TypeEntity> path;
-	@Nullable
-	private final String recommendVar;
-	private final boolean recommend;
+    private final List<TypeEntity> path;
+    @Nullable
+    private final String recommendVar;
+    private final boolean recommend;
 
-	private Pair<ForEachStmt, String> buildForEachStmt(Context ctx, HoleExpr hole, TypeEntity outer, TypeEntity inner, List<TypeEntity> remains) {
-		if (remains.isEmpty()) {
-			var iterableName = ctx.findFreeVariableName(Type.fromString(outer.getQualifiedName()));
-			var varName = ctx.findFreeVariableName(Type.fromString(inner.getQualifiedName()));
-			var forEachStmt = foreach(inner.getQualifiedName(), varName, iterableName, block(ctx..getStatements().parentStmtOf(hole)));
-			var varExpr = str2name(varName);
-			var visitor = new ReplaceNodeVisitor(hole, varExpr);
-			return Pair.of(forEachStmt.accept(visitor, null), iterableName);
-		} else {
+    private Pair<ForEachStmt, String> buildForEachStmt(Context ctx, HoleExpr hole) {
+        Pair<ForEachStmt, String> innerResult = null;
 
-			var (innerForEach, innerName) = buildForEachStmt(ctx, hole, inner, head, tail);
-			var iterableName = context.findFreeVariableName(BasicType(outer.getQualifiedName))
-			var forEachStmt = ForEachStmt(inner.getQualifiedName, innerName, iterableName, block(innerForEach))
-			(forEachStmt, iterableName)
-		}
-	}
+        for (int i = path.size() - 1; i > 0; --i) {
+            var outer = path.get(i - 1);
+            var inner = path.get(i);
+            var iterableType = Type.fromString(inner.getQualifiedName());
+            var iterableName = ctx.findFreeVariableName(Type.fromString(outer.getQualifiedName()));
+            var varName = ctx.findFreeVariableName(iterableType);
+            if (innerResult == null) {
+                var forEachStmt = foreach(iterableType, varName, str2name(iterableName), block(ctx.getSkeleton().parentStmtOf(hole)));
+                var visitor = new ReplaceNodeVisitor(hole, str2name(varName));
+                innerResult = Pair.of(forEachStmt.accept(visitor, null), iterableName);
+            } else {
+                var forEachStmt = foreach(iterableType, innerResult.getRight(), str2name(iterableName), block(innerResult.getLeft()));
+                innerResult = Pair.of(forEachStmt, iterableName);
+            }
+        }
 
-	@Override
-	public ChoiceResult action(Context ctx, HoleExpr hole) {
-		var targetType = (ReferenceType) Type.fromString(path.get(0).getQualifiedName());
-		if (path.size() == 1) {
-			if (recommendVar == null) {
-				return new NewQuestion(ChoiceQuestion.forType(ctx, targetType, recommend));
-			} else {
-				var name = str2name(recommendVar);
-				return new Filled(ctx.withSkeleton(ctx.getSkeleton().fillHole(hole, name)), name);
-			}
+        return innerResult;
+    }
 
-		} else {
-			var skeleton = ctx.getSkeleton();
-			var stmt = skeleton.parentStmtOf(hole);
-			var blockStmt = (BlockStmt) skeleton.parentOf(stmt);
-			var init = skeleton.getHoleFactory().create();
-			var(innerForEach, innerName) = buildForEachStmt(context, hole, path.head, path.tail.head, path.tail.tail)
-			var varDecl = recommendVar match {
-				case Some(name) =>
-					v(targetType, innerName, name)
-				case None =>
-					v(targetType, innerName, init)
-			}
-			Resolved(context.copy(pattern = pattern.replaceStmtInBlock(blockStmt, stmt, varDecl, innerForEach)), varDecl)
-		}
-	}
+    @Override
+    public ChoiceResult action(Context ctx, HoleExpr hole) {
+        var targetType = (ReferenceType) Type.fromString(path.get(0).getQualifiedName());
+        if (path.size() == 1) {
+            if (recommendVar == null) {
+                return new NewQuestion(ChoiceQuestion.forType(ctx, targetType, recommend));
+            } else {
+                var name = str2name(recommendVar);
+                return new Filled(ctx.withSkeleton(ctx.getSkeleton().fillHole(hole, name)), name);
+            }
+
+        } else {
+            var skeleton = ctx.getSkeleton();
+            var stmt = skeleton.parentStmtOf(hole);
+            var blockStmt = (BlockStmt) skeleton.parentOf(stmt);
+            var init = skeleton.getHoleFactory().create();
+            var inner = buildForEachStmt(ctx, hole);
+            var varDecl = recommendVar == null ? v(targetType, str2name(inner.getRight()), init)
+                : v(targetType, str2name(inner.getRight()), str2name(recommendVar));
+            return new Filled(ctx.withSkeleton(ctx.getSkeleton().replaceStmtInBlock(blockStmt, stmt, expr2stmt(varDecl), inner.getLeft())), varDecl);
+        }
+    }
 }
