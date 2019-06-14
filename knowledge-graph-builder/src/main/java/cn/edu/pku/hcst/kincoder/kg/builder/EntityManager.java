@@ -29,7 +29,7 @@ public class EntityManager {
 
     @Inject
     public EntityManager(KnowledgeGraphBuilderConfig config) {
-        this.jdkSolver = new JavaParserTypeSolver(config.getJdkPath());
+        this.jdkSolver = new JavaParserTypeSolver(config.getJdkSrcCodeDir());
     }
 
     private MethodJavadocEntity createJavadocEntity(Javadoc javadoc) {

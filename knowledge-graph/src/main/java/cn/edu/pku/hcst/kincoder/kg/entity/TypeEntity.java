@@ -1,5 +1,6 @@
 package cn.edu.pku.hcst.kincoder.kg.entity;
 
+import cn.edu.pku.hcst.kincoder.kg.StaticFieldInfoConverter;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.comments.JavadocComment;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;

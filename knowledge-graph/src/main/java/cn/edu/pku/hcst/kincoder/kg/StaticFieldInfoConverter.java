@@ -1,5 +1,6 @@
-package cn.edu.pku.hcst.kincoder.kg.entity;
+package cn.edu.pku.hcst.kincoder.kg;
 
+import cn.edu.pku.hcst.kincoder.kg.entity.StaticFieldInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.neo4j.ogm.typeconversion.AttributeConverter;

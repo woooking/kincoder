@@ -1,11 +1,15 @@
 package cn.edu.pku.hcst.kincoder.kg.builder;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 
-@Builder
-@Getter
+import java.util.List;
+
+@Data
 public class KnowledgeGraphBuilderConfig {
-    private String jdkPath;
-    private String projectPath;
+    private String uri;
+    private String username;
+    private String password;
+
+    private String jdkSrcCodeDir;
+    private List<String> projectSrcCodeDirs;
 }

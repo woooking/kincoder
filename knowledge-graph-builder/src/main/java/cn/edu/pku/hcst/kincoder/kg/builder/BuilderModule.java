@@ -6,17 +6,24 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
 public class BuilderModule extends AbstractModule {
+    private final KnowledgeGraphBuilderConfig config;
+
+    public BuilderModule(KnowledgeGraphBuilderConfig config) {
+        this.config = config;
+    }
+
     @Override
     public void configure() {
+        bind(KnowledgeGraphBuilderConfig.class).toInstance(this.config);
     }
 
     @Provides
     @Singleton
     public KnowledgeGraphConfig knowledgeGraphConfig() {
         return KnowledgeGraphConfig.builder()
-            .uri("bolt://162.105.88.99")
-            .username("neo4j")
-            .password("neo4jpoi")
+            .uri(config.getUri())
+            .username(config.getUsername())
+            .password(config.getPassword())
             .build();
     }
 }

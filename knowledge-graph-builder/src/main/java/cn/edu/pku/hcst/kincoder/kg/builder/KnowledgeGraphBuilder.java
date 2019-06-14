@@ -13,12 +13,15 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserAnonymousClassDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
 import com.github.javaparser.symbolsolver.utils.SymbolSolverCollectionStrategy;
+import com.github.javaparser.utils.ProjectRoot;
 import com.github.javaparser.utils.SourceRoot;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import org.neo4j.ogm.session.Session;
+import org.yaml.snakeyaml.Yaml;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Optional;
@@ -145,13 +148,14 @@ public class KnowledgeGraphBuilder {
 
     public void build() {
         var strategy = new SymbolSolverCollectionStrategy();
-        var path = Path.of(builderConfig.getProjectPath());
-        var project = strategy.collect(path);
 
         log.info("Start parsing codes.");
 
-        var cus = project.getSourceRoots()
-            .stream()
+        var cus = builderConfig.getProjectSrcCodeDirs().stream()
+            .map(Path::of)
+            .map(strategy::collect)
+            .map(ProjectRoot::getSourceRoots)
+            .flatMap(Collection::stream)
             .map(SourceRoot::tryToParseParallelized)
             .flatMap(Collection::stream)
             .filter(ParseResult::isSuccessful)
@@ -175,11 +179,15 @@ public class KnowledgeGraphBuilder {
         sessionFactory.close();
     }
 
-    public static void main(String[] args) {
-        var injector = Guice.createInjector(new BuilderModule());
-        var builder = injector.getInstance(KnowledgeGraphBuilder.class);
+    public static void main(String[] args) throws IOException {
+        var yaml = new Yaml();
 
-        builder.build();
+        try (var configFile = KnowledgeGraphBuilder.class.getResourceAsStream("/application.yaml")) {
+            var config = yaml.loadAs(configFile, KnowledgeGraphBuilderConfig.class);
+            var injector = Guice.createInjector(new BuilderModule(config));
+            var builder = injector.getInstance(KnowledgeGraphBuilder.class);
+            builder.build();
+        }
     }
 
 
