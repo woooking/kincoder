@@ -58,6 +58,16 @@ public class ReplaceNodeVisitor implements HomoVisitor<Void> {
     }
 
     @Override
+    public Node<?> visit(Node<?> node, Void arg) {
+        throw new RuntimeException();
+    }
+
+    @Override
+    public Expr<?> visit(Expr<?> node, Void arg) {
+        throw new RuntimeException();
+    }
+
+    @Override
     public Arg visit(Arg node, Void arg) {
         return check(node, Arg::getValue, Arg::withValue).orElse(null);
     }
@@ -138,7 +148,7 @@ public class ReplaceNodeVisitor implements HomoVisitor<Void> {
 
     @Override
     public EnumConstantExpr visit(EnumConstantExpr node, Void arg) {
-        return check(node, EnumConstantExpr::getName, EnumConstantExpr::withName).orElse(null);
+        return this.<EnumConstantExpr, NameOrHole<?>>check(node, EnumConstantExpr::getName, EnumConstantExpr::withName).orElse(null);
     }
 
     @Override
@@ -175,12 +185,12 @@ public class ReplaceNodeVisitor implements HomoVisitor<Void> {
 
     @Override
     public StaticFieldAccessExpr visit(StaticFieldAccessExpr node, Void arg) {
-        return check(node, StaticFieldAccessExpr::getName, StaticFieldAccessExpr::withName).orElse(null);
+        return this.<StaticFieldAccessExpr, NameOrHole<?>>check(node, StaticFieldAccessExpr::getName, StaticFieldAccessExpr::withName).orElse(null);
     }
 
     @Override
     public FieldAccessExpr visit(FieldAccessExpr node, Void arg) {
-        return check(node, FieldAccessExpr::getName, FieldAccessExpr::withName).orElse(
+        return this.<FieldAccessExpr, NameOrHole<?>>check(node, FieldAccessExpr::getName, FieldAccessExpr::withName).orElse(
             check(node, FieldAccessExpr::getReceiver, FieldAccessExpr::withReceiver).orElse(null)
         );
     }
@@ -188,7 +198,7 @@ public class ReplaceNodeVisitor implements HomoVisitor<Void> {
     @Override
     public VarDeclExpr visit(VarDeclExpr node, Void arg) {
         return checkNullable(node, VarDeclExpr::getInit, VarDeclExpr::withInit).orElse(
-            check(node, VarDeclExpr::getName, VarDeclExpr::withName).orElse(null)
+            this.<VarDeclExpr, NameExpr<?>>check(node, VarDeclExpr::getName, VarDeclExpr::withName).orElse(null)
         );
     }
 

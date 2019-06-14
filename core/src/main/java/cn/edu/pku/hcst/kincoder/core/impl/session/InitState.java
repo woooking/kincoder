@@ -6,7 +6,7 @@ import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.Type;
 import cn.edu.pku.hcst.kincoder.common.utils.Pair;
 import cn.edu.pku.hcst.kincoder.core.api.*;
 import cn.edu.pku.hcst.kincoder.core.nlp.NlpService;
-import cn.edu.pku.hcst.kincoder.core.qa.Context;
+import cn.edu.pku.hcst.kincoder.core.qa.ContextFactory;
 import cn.edu.pku.hcst.kincoder.core.qa.QuestionGenerator;
 
 import java.util.List;
@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class InitState implements SessionState {
+    private final ContextFactory contextFactory;
+
     private final NlpService nlpService;
     private final QuestionGenerator questionGenerator;
 
@@ -23,7 +25,8 @@ public class InitState implements SessionState {
     private final Set<String> extendedTypes;
     private final List<Pair<Skeleton, Double>> skeletons;
 
-    InitState(NlpService nlpService, QuestionGenerator questionGenerator, String query, Map<String, String> variables, Set<String> extendedTypes, List<Pair<Skeleton, Double>> skeletons) {
+    InitState(ContextFactory contextFactory, NlpService nlpService, QuestionGenerator questionGenerator, String query, Map<String, String> variables, Set<String> extendedTypes, List<Pair<Skeleton, Double>> skeletons) {
+        this.contextFactory = contextFactory;
         this.nlpService = nlpService;
         this.questionGenerator = questionGenerator;
         this.query = query;
@@ -39,7 +42,7 @@ public class InitState implements SessionState {
             .map(e -> Pair.of(e.getKey(), Type.fromString(e.getValue())))
             .collect(Collectors.toSet());
 
-        var ctx = new Context(query, v, skeletons.get(id).getLeft(), extendedTypes, nlpCtx);
+        var ctx = contextFactory.create(query, v, skeletons.get(id).getLeft(), extendedTypes, nlpCtx);
 
         return questionGenerator.generate(ctx).<Pair<SessionState, QAResponse>>map(pair -> {
             var hole = pair.getLeft();

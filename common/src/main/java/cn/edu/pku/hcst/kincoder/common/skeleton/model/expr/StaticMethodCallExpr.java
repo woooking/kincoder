@@ -38,4 +38,9 @@ public class StaticMethodCallExpr implements Expr<StaticMethodCallExpr>, Callabl
         );
     }
 
+    @Override
+    public int findArgIndex(Arg arg) {
+        return args.indexOf(arg);
+    }
+
 }

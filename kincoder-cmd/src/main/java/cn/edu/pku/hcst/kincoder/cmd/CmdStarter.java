@@ -4,9 +4,10 @@ import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.Printer;
 import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.Printer.PrintConfig;
 import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.Printer.PrintContext;
 import cn.edu.pku.hcst.kincoder.core.api.*;
+import cn.edu.pku.hcst.kincoder.core.nlp.NlpServerConfig;
 import cn.edu.pku.hcst.kincoder.core.qa.Context;
 import cn.edu.pku.hcst.kincoder.core.qa.Question;
-import com.google.inject.Guice;
+import cn.edu.pku.hcst.kincoder.kg.KnowledgeGraphConfig;
 
 import java.util.Map;
 import java.util.Scanner;
@@ -19,9 +20,12 @@ public class CmdStarter {
     );
 
     public static void main(String[] args) {
+        KinCoderConfig kinCoderConfig = KinCoderConfig.builder().build();
+        NlpServerConfig nlpServerConfig = NlpServerConfig.builder().build();
+        KnowledgeGraphConfig knowledgeGraphConfig = KnowledgeGraphConfig.builder().build();
+
         var task = scanner.nextLine();
-        var injector = Guice.createInjector();
-        var service = injector.getInstance(KinCoderService.class);
+        var service = KinCoderService.start(kinCoderConfig, nlpServerConfig, knowledgeGraphConfig);
         var response = service.startSession(task, Map.of("sheet", "org.apache.poi.ss.usermodel.Sheet"), Set.of("java.lang.Object"));
         response.getSkeletons().forEach(s -> {
             System.out.println("-----");

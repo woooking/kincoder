@@ -8,6 +8,9 @@ import cn.edu.pku.hcst.kincoder.common.skeleton.model.stmt.Stmt;
 import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.NodeCollector;
 import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.ParentCollector;
 import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.ReplaceNodeVisitor;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Streams;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -28,11 +31,17 @@ public class Skeleton {
     @Wither
     @Getter
     private final BlockStmt stmts;
+    @JsonIgnore
     private final Map<Node<?>, Node<?>> parentMap;
+    @JsonIgnore
     @Getter
     private final List<HoleExpr> holes;
 
-    public static Skeleton create(HoleFactory holeFactory, BlockStmt stmts) {
+    @JsonCreator
+    public static Skeleton create(
+        @JsonProperty("holeFactory") HoleFactory holeFactory,
+        @JsonProperty("stmts") BlockStmt stmts
+    ) {
         var parentMap = ParentCollector.INSTANCE.collect(stmts);
 
         var holes = NodeCollector.INSTANCE.collect(stmts, HoleExpr.class);

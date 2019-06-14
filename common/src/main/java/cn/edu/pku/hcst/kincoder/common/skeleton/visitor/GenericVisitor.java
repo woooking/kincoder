@@ -12,6 +12,11 @@ import java.util.List;
 public class GenericVisitor implements Visitor<Void, List<? extends Node>> {
 
     @Override
+    public List<? extends Node> visit(Node<?> node, Void arg) {
+        throw new RuntimeException();
+    }
+
+    @Override
     public List<? extends Node> visit(Arg node, Void arg) {
         return List.of(node.getValue());
     }

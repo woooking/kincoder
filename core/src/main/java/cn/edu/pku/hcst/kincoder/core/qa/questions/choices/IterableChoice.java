@@ -10,23 +10,34 @@ import cn.edu.pku.hcst.kincoder.common.utils.Pair;
 import cn.edu.pku.hcst.kincoder.core.qa.Context;
 import cn.edu.pku.hcst.kincoder.core.qa.questions.*;
 import cn.edu.pku.hcst.kincoder.kg.entity.TypeEntity;
-import lombok.Value;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.foreach;
-import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.str2name;
-import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.block;
-import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.v;
-import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.expr2stmt;
+import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.*;
 
-@Value
+@Getter
+@EqualsAndHashCode
+@ToString
 public class IterableChoice implements Choice {
+    private final ChoiceQuestionFactory choiceQuestionFactory;
     private final List<TypeEntity> path;
     @Nullable
     private final String recommendVar;
     private final boolean recommend;
+
+    @Inject
+    public IterableChoice(ChoiceQuestionFactory choiceQuestionFactory, @Assisted List<TypeEntity> path, @Assisted @Nullable String recommendVar, @Assisted boolean recommend) {
+        this.choiceQuestionFactory = choiceQuestionFactory;
+        this.path = path;
+        this.recommendVar = recommendVar;
+        this.recommend = recommend;
+    }
 
     private Pair<ForEachStmt, String> buildForEachStmt(Context ctx, HoleExpr hole) {
         Pair<ForEachStmt, String> innerResult = null;
@@ -55,7 +66,7 @@ public class IterableChoice implements Choice {
         var targetType = (ReferenceType) Type.fromString(path.get(0).getQualifiedName());
         if (path.size() == 1) {
             if (recommendVar == null) {
-                return new NewQuestion(ChoiceQuestion.forType(ctx, targetType, recommend));
+                return new NewQuestion(choiceQuestionFactory.forType(ctx, targetType, recommend));
             } else {
                 var name = str2name(recommendVar);
                 return new Filled(ctx.withSkeleton(ctx.getSkeleton().fillHole(hole, name)), name);

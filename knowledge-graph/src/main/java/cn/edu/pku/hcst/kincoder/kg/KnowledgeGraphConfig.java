@@ -6,7 +6,7 @@ import lombok.Getter;
 @Builder
 @Getter
 public class KnowledgeGraphConfig {
-    private String uri;
-    private String username;
-    private String password;
+    @Builder.Default private String uri = "bolt://162.105.88.99";
+    @Builder.Default private String username = "neo4j";
+    @Builder.Default private String password = "neo4jpoi";
 }

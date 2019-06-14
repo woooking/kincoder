@@ -5,6 +5,7 @@ import cn.edu.pku.hcst.kincoder.common.utils.Pair;
 import cn.edu.pku.hcst.kincoder.core.api.QAResponse;
 import cn.edu.pku.hcst.kincoder.core.api.UndoResponse;
 import cn.edu.pku.hcst.kincoder.core.nlp.NlpService;
+import cn.edu.pku.hcst.kincoder.core.qa.ContextFactory;
 import cn.edu.pku.hcst.kincoder.core.qa.QuestionGenerator;
 
 import java.util.List;
@@ -16,10 +17,10 @@ public class Session {
     private final QuestionGenerator questionGenerator;
     private SessionState state;
 
-    public Session(NlpService nlpService, QuestionGenerator questionGenerator, String query, Map<String, String> variables, Set<String> extendedTypes, List<Pair<Skeleton, Double>> skeletons) {
+    public Session(ContextFactory contextFactory, NlpService nlpService, QuestionGenerator questionGenerator, String query, Map<String, String> variables, Set<String> extendedTypes, List<Pair<Skeleton, Double>> skeletons) {
         this.nlpService = nlpService;
         this.questionGenerator = questionGenerator;
-        this.state = new InitState(nlpService, questionGenerator, query, variables, extendedTypes, skeletons);
+        this.state = new InitState(contextFactory, nlpService, questionGenerator, query, variables, extendedTypes, skeletons);
     }
 
     public QAResponse selectSkeleton(int id) {

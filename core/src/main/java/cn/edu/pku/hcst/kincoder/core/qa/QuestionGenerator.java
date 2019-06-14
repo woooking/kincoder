@@ -3,7 +3,6 @@ package cn.edu.pku.hcst.kincoder.core.qa;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.HoleExpr;
 import cn.edu.pku.hcst.kincoder.common.utils.Pair;
 import cn.edu.pku.hcst.kincoder.core.api.KinCoderConfig;
-import cn.edu.pku.hcst.kincoder.core.qa.hole_resolver.CombineHoleResolver;
 import cn.edu.pku.hcst.kincoder.core.qa.hole_resolver.HoleResolver;
 import cn.edu.pku.hcst.kincoder.core.qa.questions.ChoiceQuestion;
 import cn.edu.pku.hcst.kincoder.core.qa.questions.EnumConstantQuestion;
@@ -14,7 +13,6 @@ import com.google.inject.Inject;
 
 import java.util.Comparator;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,10 +22,8 @@ public class QuestionGenerator {
     private final KinCoderConfig config;
 
     @Inject
-    public QuestionGenerator(Set<HoleResolver> holeResolvers, RecommendService recommendService, KinCoderConfig config) {
-        this.resolver = new CombineHoleResolver(holeResolvers.stream()
-            .sorted(Comparator.comparingInt(HoleResolver::order))
-            .collect(Collectors.toList()));
+    public QuestionGenerator(RecommendService recommendService, KinCoderConfig config) {
+        this.resolver = recommendService.getResolver();
         this.recommendService = recommendService;
         this.config = config;
     }
@@ -60,9 +56,5 @@ public class QuestionGenerator {
         }
 
         return Optional.empty();
-    }
-
-    public Optional<Question> generateForHole(Context ctx, HoleExpr hole) {
-        return resolver.resolve(ctx, hole, true);
     }
 }

@@ -38,4 +38,9 @@ public class ObjectCreationExpr implements Expr<ObjectCreationExpr>, Callable {
             argStr
         );
     }
+
+    @Override
+    public int findArgIndex(Arg arg) {
+        return args.indexOf(arg);
+    }
 }

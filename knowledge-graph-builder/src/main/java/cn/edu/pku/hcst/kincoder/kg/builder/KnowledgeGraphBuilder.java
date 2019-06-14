@@ -38,7 +38,7 @@ public class KnowledgeGraphBuilder {
         this.entityManager = entityManager;
         this.builderConfig = builderConfig;
         this.sessionFactory = sessionFactory;
-        this.session = sessionFactory.createSession();
+        this.session = sessionFactory.get();
     }
 
     private void buildTypeMapping(Stream<TypeDeclaration<?>> typeDeclarations) {

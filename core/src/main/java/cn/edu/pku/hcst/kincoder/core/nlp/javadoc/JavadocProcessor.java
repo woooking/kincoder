@@ -3,14 +3,14 @@ package cn.edu.pku.hcst.kincoder.core.nlp.javadoc;
 import cn.edu.pku.hcst.kincoder.core.nlp.NlpService;
 import com.google.inject.Inject;
 
-import java.util.List;
+import java.util.Set;
 
 public class JavadocProcessor {
-	private final List<JavadocDescriptionPreFilter> javadocDescriptionPreFilters;
+	private final Set<JavadocDescriptionPreFilter> javadocDescriptionPreFilters;
 	private final NlpService nlpService;
 
 	@Inject
-	public JavadocProcessor(List<JavadocDescriptionPreFilter> javadocDescriptionPreFilters, NlpService nlpService) {
+	public JavadocProcessor(Set<JavadocDescriptionPreFilter> javadocDescriptionPreFilters, NlpService nlpService) {
 		this.javadocDescriptionPreFilters = javadocDescriptionPreFilters;
 		this.nlpService = nlpService;
 	}

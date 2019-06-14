@@ -6,6 +6,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class NlpServerConfig {
-    private final String host;
-    private final int port;
+    @Builder.Default private final String host = "http://162.105.88.236";
+    @Builder.Default private final int port = 9000;
 }

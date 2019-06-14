@@ -14,6 +14,7 @@ import cn.edu.pku.hcst.kincoder.core.qa.questions.*;
 import cn.edu.pku.hcst.kincoder.core.qa.questions.choices.*;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
@@ -27,17 +28,16 @@ import java.util.stream.Stream;
 import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.str2name;
 
 public class RecommendService {
+    @Getter
     private final HoleResolver resolver;
     private final KinCoderConfig config;
-    private final QuestionGenerator questionGenerator;
 
     @Inject
-    public RecommendService(Set<HoleResolver> holeResolvers, KinCoderConfig config, QuestionGenerator questionGenerator) {
+    public RecommendService(Set<HoleResolver> holeResolvers, KinCoderConfig config) {
         this.resolver = new CombineHoleResolver(holeResolvers.stream()
             .sorted(Comparator.comparingInt(HoleResolver::order))
             .collect(Collectors.toList()));
         this.config = config;
-        this.questionGenerator = questionGenerator;
     }
 
     private double scoreOfChoice(Choice choice) {
@@ -150,7 +150,7 @@ public class RecommendService {
         if (depth == config.getMaxSearchStep()) {
             return List.of(choice(ctx, filled, score, originHoles));
         } else {
-            return questionGenerator.generateForHole(ctx, hole).map(q -> recommend(ctx, filled, q, hole, depth, score, originHoles, ignoredHoles)).orElse(List.of());
+            return resolver.resolve(ctx, hole, true).map(q -> recommend(ctx, filled, q, hole, depth, score, originHoles, ignoredHoles)).orElse(List.of());
         }
     }
 

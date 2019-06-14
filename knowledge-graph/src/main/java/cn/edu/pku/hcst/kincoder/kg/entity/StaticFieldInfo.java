@@ -3,13 +3,13 @@ package cn.edu.pku.hcst.kincoder.kg.entity;
 import com.github.javaparser.resolution.declarations.ResolvedFieldDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.stream.Collectors.*;
 
 public class StaticFieldInfo {
-    private Map<String, List<String>> fieldsInfo;
+    private Map<String, Set<String>> fieldsInfo;
 
     public StaticFieldInfo() {
 
@@ -21,7 +21,7 @@ public class StaticFieldInfo {
             .collect(
                 groupingBy(
                     (ResolvedFieldDeclaration f) -> f.getType().describe(),
-                    mapping(ResolvedFieldDeclaration::getName, toList())
+                    mapping(ResolvedFieldDeclaration::getName, toSet())
                 )
             );
     }
@@ -35,7 +35,7 @@ public class StaticFieldInfo {
         }
     }
 
-    public Map<String, List<String>> getFieldsInfo() {
+    public Map<String, Set<String>> getFieldsInfo() {
         return fieldsInfo;
     }
 }

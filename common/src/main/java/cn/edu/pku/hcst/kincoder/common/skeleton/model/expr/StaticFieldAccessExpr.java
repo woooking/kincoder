@@ -1,5 +1,6 @@
 package cn.edu.pku.hcst.kincoder.common.skeleton.model.expr;
 
+import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.ReferenceType;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.Type;
 import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.HomoVisitor;
 import cn.edu.pku.hcst.kincoder.common.skeleton.visitor.Visitor;
@@ -9,7 +10,7 @@ import lombok.experimental.Wither;
 @Value
 @Wither
 public class StaticFieldAccessExpr implements Expr<StaticFieldAccessExpr> {
-    private final Type receiverType;
+    private final ReferenceType receiverType;
     private final Type targetType;
     private final NameOrHole<?> name;
 
