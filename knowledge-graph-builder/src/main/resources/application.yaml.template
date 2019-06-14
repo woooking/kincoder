@@ -1,0 +1,7 @@
+uri: "bolt://127.0.0.1"
+username: "neo4j"
+password: "neo4j"
+projectSrcCodeDirs:
+  - "/home/woooking/lab/poi-3.14/src/java"
+  - "/home/woooking/lab/poi-3.14/src/ooxml/java"
+jdkSrcCodeDir: "/home/woooking/lab/jdk-11/src"
