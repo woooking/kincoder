@@ -1,10 +1,15 @@
 
 plugins {
     id 'java'
+    id 'application'
 }
 
 dependencies {
     compile project(':knowledge-graph')
     compileOnly 'org.projectlombok:lombok:1.18.8'
     annotationProcessor 'org.projectlombok:lombok:1.18.8'
+}
+
+application {
+    mainClassName = 'cn.edu.pku.hcst.kincoder.kg.builder.KnowledgeGraphBuilder'
 }
