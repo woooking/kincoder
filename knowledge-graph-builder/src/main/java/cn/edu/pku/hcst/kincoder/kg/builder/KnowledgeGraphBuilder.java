@@ -54,7 +54,12 @@ public class KnowledgeGraphBuilder {
             var qualifiedName = decl.resolve().getQualifiedName();
             var typeEntity = entityManager.getTypeEntityOrCreate(qualifiedName);
             var parentTypes = Stream.concat(decl.getExtendedTypes().stream(), decl.getImplementedTypes().stream());
-            typeEntity.addExtendedTypes(parentTypes.map(this::type2entity).collect(Collectors.toSet()));
+            typeEntity.addExtendedTypes(
+                parentTypes
+                    .map(this::type2entity)
+                    .flatMap(Optional::stream)
+                    .collect(Collectors.toSet())
+            );
             typeEntity.setIterableType(getIterableType(decl.resolve()));
         });
     }
@@ -138,9 +143,16 @@ public class KnowledgeGraphBuilder {
             });
     }
 
-    private TypeEntity type2entity(ClassOrInterfaceType decl) {
-        var qualifiedName = decl.resolve().getQualifiedName();
-        return entityManager.getTypeEntityOrCreate(qualifiedName);
+    private Optional<TypeEntity> type2entity(ClassOrInterfaceType decl) {
+        try {
+            var qualifiedName = decl.resolve().getQualifiedName();
+            return Optional.of(entityManager.getTypeEntityOrCreate(qualifiedName));
+        } catch (UnsolvedSymbolException e) {
+            if (builderConfig.isPrintUnsolvedSymbol()) {
+                log.warn("Unsolved Symbol", e);
+            }
+            return Optional.empty();
+        }
     }
 
     private TypeEntity getIterableType(ResolvedReferenceTypeDeclaration resolved) {
