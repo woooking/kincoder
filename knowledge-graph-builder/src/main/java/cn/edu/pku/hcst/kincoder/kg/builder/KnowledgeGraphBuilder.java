@@ -25,6 +25,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -94,8 +95,8 @@ public class KnowledgeGraphBuilder {
             });
     }
 
-    private void buildProduceRelation(Stream<CompilationUnit> cus) {
-        cus.map(cu -> cu.findAll(MethodDeclaration.class))
+    private void buildProduceRelation(List<CompilationUnit> cus) {
+        cus.stream().map(cu -> cu.findAll(MethodDeclaration.class))
             .flatMap(Collection::stream)
             .forEach(decl -> {
                 try {
@@ -114,7 +115,7 @@ public class KnowledgeGraphBuilder {
                         }
 
                     }
-                } catch (UnsolvedSymbolException e) {
+                } catch (UnsolvedSymbolException | UnsupportedOperationException e) {
                     if (builderConfig.isPrintUnsolvedSymbol()) {
                         log.warn("Unsolved Symbol", e);
                     }
@@ -122,7 +123,7 @@ public class KnowledgeGraphBuilder {
                     log.error("", e);
                 }
             });
-        cus.map(cu -> cu.findAll(ConstructorDeclaration.class))
+        cus.stream().map(cu -> cu.findAll(ConstructorDeclaration.class))
             .flatMap(Collection::stream)
             .forEach(decl -> {
                 try {
@@ -198,7 +199,7 @@ public class KnowledgeGraphBuilder {
         log.info("Start building method extend relations");
         buildMethodExtendRelation(cus.stream());
         log.info("Start building produce relations");
-        buildProduceRelation(cus.stream());
+        buildProduceRelation(cus);
 
         entityManager.save(session);
         sessionFactory.close();
