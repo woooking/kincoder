@@ -10,6 +10,7 @@ import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclar
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.*;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.google.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
 import org.neo4j.ogm.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 public class EntityManager {
     private static Logger logger = LoggerFactory.getLogger(EntityManager.class);
 
@@ -25,11 +27,13 @@ public class EntityManager {
     private final Map<String, TypeEntity> typeMapping = new HashMap<>();
     private final List<MethodJavadocEntity> javadocs = new ArrayList<>();
 
+    private final KnowledgeGraphBuilderConfig config;
     private final JavaParserTypeSolver jdkSolver;
 
     @Inject
     public EntityManager(KnowledgeGraphBuilderConfig config) {
         this.jdkSolver = new JavaParserTypeSolver(config.getJdkSrcCodeDir());
+        this.config = config;
     }
 
     private MethodJavadocEntity createJavadocEntity(Javadoc javadoc) {
@@ -60,7 +64,9 @@ public class EntityManager {
                 var methodEntity = new MethodEntity(m, isDeprecated, typeEntity, javadoc.orElse(null));
                 methodMapping.put(methodEntity.getQualifiedSignature(), methodEntity);
             } catch (UnsolvedSymbolException e) {
-                logger.warn("Unsolved Symbol", e);
+                if (config.isPrintUnsolvedSymbol()) {
+                    log.warn("Unsolved Symbol", e);
+                }
             } catch (UnsupportedOperationException e) {
                 logger.warn("Unsupported Operation", e);
             } catch (Throwable e) {
@@ -84,7 +90,9 @@ public class EntityManager {
                 methodMapping.put(methodEntity.getQualifiedSignature(), methodEntity);
 
             } catch (UnsolvedSymbolException e) {
-                logger.warn("Unsolved Symbol", e);
+                if (config.isPrintUnsolvedSymbol()) {
+                    log.warn("Unsolved Symbol", e);
+                }
             } catch (UnsupportedOperationException e) {
                 logger.warn("Unsupported Operation", e);
             } catch (Throwable e) {

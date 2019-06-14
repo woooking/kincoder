@@ -7,6 +7,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedReferenceTypeDeclaration;
 import com.github.javaparser.resolution.types.ResolvedReferenceType;
 import com.github.javaparser.resolution.types.ResolvedType;
@@ -78,6 +79,10 @@ public class KnowledgeGraphBuilder {
                                 .collect(Collectors.toSet())
                         );
                     }
+                } catch (UnsolvedSymbolException e) {
+                    if (builderConfig.isPrintUnsolvedSymbol()) {
+                        log.warn("Unsolved Symbol", e);
+                    }
                 } catch (Throwable e) {
                     log.error("", e);
                 }
@@ -104,6 +109,10 @@ public class KnowledgeGraphBuilder {
                         }
 
                     }
+                } catch (UnsolvedSymbolException e) {
+                    if (builderConfig.isPrintUnsolvedSymbol()) {
+                        log.warn("Unsolved Symbol", e);
+                    }
                 } catch (Throwable e) {
                     log.error("", e);
                 }
@@ -118,6 +127,10 @@ public class KnowledgeGraphBuilder {
                         var returnType = resolvedMethod.declaringType();
                         var name = returnType.asReferenceType().getQualifiedName();
                         methodEntity.setReturns(entityManager.getTypeEntityOrCreate(name));
+                    }
+                } catch (UnsolvedSymbolException e) {
+                    if (builderConfig.isPrintUnsolvedSymbol()) {
+                        log.warn("Unsolved Symbol", e);
                     }
                 } catch (Throwable e) {
                     log.error("", e);

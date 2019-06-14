@@ -12,4 +12,6 @@ public class KnowledgeGraphBuilderConfig {
 
     private String jdkSrcCodeDir;
     private List<String> projectSrcCodeDirs;
+
+    private boolean printUnsolvedSymbol = false;
 }
