@@ -1,6 +1,6 @@
 package cn.edu.pku.hcst.kincoder.pattern.javaimpl.cfg;
 
-import cn.edu.pku.hcst.kincoder.common.collect.ImmutableStack;
+import cn.edu.pku.hcst.kincoder.common.collection.ImmutableStack;
 import cn.edu.pku.hcst.kincoder.pattern.javaimpl.ir.IRExpression;
 import cn.edu.pku.hcst.kincoder.pattern.javaimpl.ir.expressions.IRArg;
 import cn.edu.pku.hcst.kincoder.pattern.javaimpl.ir.expressions.IRTemp;

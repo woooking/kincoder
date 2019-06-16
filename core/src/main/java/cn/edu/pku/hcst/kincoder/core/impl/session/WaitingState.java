@@ -1,6 +1,6 @@
 package cn.edu.pku.hcst.kincoder.core.impl.session;
 
-import cn.edu.pku.hcst.kincoder.common.collect.ImmutableStack;
+import cn.edu.pku.hcst.kincoder.common.collection.ImmutableStack;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.HoleExpr;
 import cn.edu.pku.hcst.kincoder.common.utils.Pair;
 import cn.edu.pku.hcst.kincoder.common.utils.Tuple3;

@@ -1,4 +1,4 @@
-package cn.edu.pku.hcst.kincoder.common.collect;
+package cn.edu.pku.hcst.kincoder.common.collection;
 
 import cn.edu.pku.hcst.kincoder.common.utils.Pair;
 
