@@ -2,6 +2,7 @@ package cn.edu.pku.hcst.kincoder.pattern.javaimpl;
 
 import cn.edu.pku.hcst.kincoder.common.skeleton.HoleFactory;
 import cn.edu.pku.hcst.kincoder.common.skeleton.NameFinder;
+import cn.edu.pku.hcst.kincoder.common.skeleton.model.Arg;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.Expr;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.HoleExpr;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameOrHole;
@@ -9,6 +10,9 @@ import cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.literal.*;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.stmt.Stmt;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.ReferenceType;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.Type;
+import cn.edu.pku.hcst.kincoder.common.utils.ElementUtil;
+import cn.edu.pku.hcst.kincoder.common.utils.Pair;
+import cn.edu.pku.hcst.kincoder.common.utils.Tuple3;
 import cn.edu.pku.hcst.kincoder.kg.utils.CodeUtil;
 import cn.edu.pku.hcst.kincoder.pattern.javaimpl.DFG2PatternExpressionVisitor.GenExprResult;
 import com.github.javaparser.ast.Node;
@@ -16,9 +20,11 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.visitor.GenericVisitorWithDefaults;
 import com.github.javaparser.resolution.UnsolvedSymbolException;
+import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaration;
+import com.google.common.collect.Streams;
 import lombok.Value;
-import lombok.val;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,6 +34,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.*;
 import static cn.edu.pku.hcst.kincoder.common.utils.CollectionUtil.concat;
@@ -65,8 +73,35 @@ public class DFG2PatternExpressionVisitor extends GenericVisitorWithDefaults<Gen
         this.nameFinder = new SimpleFindNameContext();
     }
 
+    private GenExprResult holeResult(Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>> ctx) {
+        return new GenExprResult(holeFactory.create(), ctx, List.of());
+    }
+
+    private Tuple3<List<Arg>, Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>>, List<Stmt<?>>> processParams(List<Pair<String, Expression>> args, Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>> ctx) {
+        List<Arg> result = new ArrayList<>();
+        List<Stmt<?>> added = new ArrayList<>();
+
+        for (Pair<String, Expression> arg : args) {
+            var ty = Type.fromString(arg.getLeft());
+            var expr = arg.getRight();
+            var r = expr.accept(this, ctx);
+            if (r.getE() instanceof HoleExpr || r.getE() instanceof cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr) {
+                ctx = r.getCtx();
+                added.addAll(r.getAdded());
+                result.add(new Arg(ty, r.getE()));
+            } else {
+                var n = name(ty, nameFinder);
+                ctx = r.getCtx();
+                added.addAll(r.getAdded());
+                added.add(expr2stmt(v(ty, n, r.getE())));
+                result.add(new Arg(ty, n));
+            }
+        }
+        return Tuple3.of(result, ctx, added);
+    }
+
     private GenExprResult rs0(Node n, Supplier<Expr<?>> gen, Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>> ctx) {
-        return nodes.contains(n) ? new GenExprResult(gen.get(), ctx, List.of()) : new GenExprResult(holeFactory.create(), ctx, List.of());
+        return nodes.contains(n) ? new GenExprResult(gen.get(), ctx, List.of()) : holeResult(ctx);
     }
 
     private GenExprResult rs1(Node n, Expression ast1, Function<Expr<?>, Expr<?>> gen, Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>> ctx) {
@@ -126,12 +161,11 @@ public class DFG2PatternExpressionVisitor extends GenericVisitorWithDefaults<Gen
                 var ty = (ReferenceType) codeUtil.resolvedTypeToType(n.getScope().asNameExpr().calculateResolvedType());
                 return rs0(n, () -> enumerate(ty, constant), arg);
             } catch (Throwable e) {
-                return new GenExprResult(holeFactory.create(), arg, List.of());
+                return holeResult(arg);
             }
         } else {
             NameOrHole<?> constant = nodes.contains(n.getName()) ? str2name(n.getNameAsString()) : holeFactory.create();
             var result = n.getScope().accept(this, arg);
-//            var GenExprResult(receiver, ctx, added) = generateCodeExpr(n.getScope, nodes, names)
             try {
                 var ty = (ReferenceType) codeUtil.resolvedTypeToType(n.getScope().calculateResolvedType());
                 return nodes.contains(n)
@@ -155,26 +189,42 @@ public class DFG2PatternExpressionVisitor extends GenericVisitorWithDefaults<Gen
 
     @Override
     public GenExprResult visit(MethodCallExpr n, Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>> arg) {
-//        if (n.getScope().isPresent()) {
-//            try {
-//                if (n.resolve().isStatic()) {
-//                    val resolved = n.resolve()
-//                    val paramTypes = (0 until resolved.getNumberOfParams).map(resolved.getParam).map(_.describeType())
-//                    processParams((paramTypes zip n.getArguments.asScala).toList, names, Nil, Nil)
-//                } else {
-//
-//                }
-//            } catch (Throwable e) {
-//                GenExprResult(holeFactory.newHole(), names, Nil)
-//            }
-//        }
+        try {
+            if (n.getScope().isPresent() && !n.resolve().isStatic()) {
+                var scope = n.getScope().get();
+                var r1 = scope.accept(this, arg);
+                var resolved = n.resolve();
+                var paramTypes = IntStream.range(0, resolved.getNumberOfParams())
+                    .mapToObj(resolved::getParam)
+                    .map(ResolvedParameterDeclaration::describeType);
+                var args = Streams.zip(paramTypes, n.getArguments().stream(), Pair::of)
+                    .collect(Collectors.toList());
+                var r = processParams(args, r1.getCtx());
+                var qualifiedSignature = codeUtil.getMethodProto(n.resolve().getQualifiedSignature());
+                return nodes.contains(n)
+                    ? new GenExprResult(call(r1.getE(), ElementUtil.methodReceiverType(qualifiedSignature.get()).get(), n.getNameAsString(), r.getV1().toArray(new Arg[0])), r.getV2(), r.getV3())
+                    : new GenExprResult(holeFactory.create(), r.getV2(), r.getV3());
+            }
 
-        return super.visit(n, arg);
+            var resolved = n.resolve();
+            var paramTypes = IntStream.range(0, resolved.getNumberOfParams())
+                .mapToObj(resolved::getParam)
+                .map(ResolvedParameterDeclaration::describeType);
+            var args = Streams.zip(paramTypes, n.getArguments().stream(), Pair::of)
+                .collect(Collectors.toList());
+            var r = processParams(args, arg);
+            var qualifiedSignature = codeUtil.getMethodProto(n.resolve().getQualifiedSignature());
+            return nodes.contains(n)
+                ? new GenExprResult(call(ElementUtil.methodReceiverType(qualifiedSignature.get()).get(), n.getNameAsString(), r.getV1().toArray(new Arg[0])), r.getV2(), r.getV3())
+                : new GenExprResult(holeFactory.create(), r.getV2(), r.getV3());
+        } catch (Throwable e) {
+            return holeResult(arg);
+        }
     }
 
     @Override
     public GenExprResult visit(NameExpr n, Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>> arg) {
-        val name = n.getNameAsString();
+        var name = n.getNameAsString();
         return nodes.contains(n) ? new GenExprResult(str2name(name), arg, List.of()) : (
             arg.containsKey(name) ? new GenExprResult(arg.get(name), arg, List.of()) : new GenExprResult(holeFactory.create(), arg, List.of())
         );
@@ -187,7 +237,19 @@ public class DFG2PatternExpressionVisitor extends GenericVisitorWithDefaults<Gen
 
     @Override
     public GenExprResult visit(ObjectCreationExpr n, Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>> arg) {
-        return super.visit(n, arg);
+        var receiverType = (ReferenceType) codeUtil.resolvedTypeToType(n.getType().resolve());
+
+        var resolved = n.resolve();
+        var paramTypes = IntStream.range(0, resolved.getNumberOfParams())
+            .mapToObj(resolved::getParam)
+            .map(ResolvedParameterDeclaration::describeType);
+        var args = Streams.zip(paramTypes, n.getArguments().stream(), Pair::of)
+            .collect(Collectors.toList());
+        var r = processParams(args, arg);
+        var qualifiedSignature = codeUtil.getMethodProto(n.resolve().getQualifiedSignature());
+        return nodes.contains(n)
+            ? new GenExprResult(create(receiverType, r.getV1().stream().map(Arg::getValue).collect(Collectors.toList())), r.getV2(), r.getV3())
+            : new GenExprResult(holeFactory.create(), r.getV2(), r.getV3());
     }
 
     @Override
@@ -203,18 +265,18 @@ public class DFG2PatternExpressionVisitor extends GenericVisitorWithDefaults<Gen
     @Override
     public GenExprResult visit(VariableDeclarator n, Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>> arg) {
         try {
-            val ty = codeUtil.resolvedTypeToType(n.getType().resolve());
+            var ty = codeUtil.resolvedTypeToType(n.getType().resolve());
             if (n.getInitializer().isPresent()) {
                 var result = n.getInitializer().get().accept(this, arg);
                 if (result.getE() instanceof HoleExpr) {
                     return new GenExprResult(holeFactory.create(), arg, List.of());
                 } else {
-                    val newName = name(ty, nameFinder);
+                    var newName = name(ty, nameFinder);
                     return new GenExprResult(v(ty, newName, result.getE()), cons(result.getCtx(), n.getNameAsString(), newName), result.getAdded());
                 }
             } else {
-                    return new GenExprResult(holeFactory.create(), arg, List.of());
-                }
+                return new GenExprResult(holeFactory.create(), arg, List.of());
+            }
 
         } catch (UnsolvedSymbolException e) {
             return new GenExprResult(holeFactory.create(), arg, List.of());
@@ -223,11 +285,10 @@ public class DFG2PatternExpressionVisitor extends GenericVisitorWithDefaults<Gen
 
     @Override
     public GenExprResult visit(UnaryExpr n, Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>> arg) {
-        val op = n.getOperator();
+        var op = n.getOperator();
 
         return rs1(n, n.getExpression(), e -> unary(op.asString(), e, op.isPrefix()), arg);
     }
-
 
 
 }

@@ -1,13 +1,18 @@
 
 plugins {
     id 'java'
+    id 'application'
 }
 
 dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.8'
+    annotationProcessor 'org.projectlombok:lombok:1.18.8'
     compileOnly group: 'org.jetbrains', name: 'annotations', version: '17.0.0'
-    compileOnly 'org.projectlombok:lombok:1.18.6'
-    annotationProcessor 'org.projectlombok:lombok:1.18.6'
     compile project(':common')
     compile project(':knowledge-graph')
     compile project(':pattern')
+}
+
+application {
+    mainClassName = 'cn.edu.pku.hcst.kincoder.pattern.miner.PatternMiningRunner'
 }

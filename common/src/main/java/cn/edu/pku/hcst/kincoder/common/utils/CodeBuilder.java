@@ -3,10 +3,7 @@ package cn.edu.pku.hcst.kincoder.common.utils;
 import cn.edu.pku.hcst.kincoder.common.skeleton.NameFinder;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.Arg;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.*;
-import cn.edu.pku.hcst.kincoder.common.skeleton.model.stmt.BlockStmt;
-import cn.edu.pku.hcst.kincoder.common.skeleton.model.stmt.ExprStmt;
-import cn.edu.pku.hcst.kincoder.common.skeleton.model.stmt.ForEachStmt;
-import cn.edu.pku.hcst.kincoder.common.skeleton.model.stmt.Stmt;
+import cn.edu.pku.hcst.kincoder.common.skeleton.model.stmt.*;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.ReferenceType;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.Type;
 
@@ -61,6 +58,14 @@ public final class CodeBuilder {
         return new FieldAccessExpr(receiverType, receiver, name);
     }
 
+    public static ForStmt forStmt(List<Expr<?>> inits, List<Expr<?>> updates, BlockStmt block) {
+        return new ForStmt(inits, null, updates, block);
+    }
+
+    public static ForStmt forStmt(List<Expr<?>> inits, Expr<?> condition, List<Expr<?>> updates, BlockStmt block) {
+        return new ForStmt(inits, condition, updates, block);
+    }
+
     public static ForEachStmt foreach(Type iteratedType, String variable, Expr<?> iterable, BlockStmt block) {
         return new ForEachStmt(iteratedType, variable, iterable, block);
     }
@@ -69,6 +74,13 @@ public final class CodeBuilder {
         return new TypeNameExpr(ty, finder.nextIdForType(ty));
     }
 
+    public static ReturnStmt ret() {
+        return new ReturnStmt(null);
+    }
+
+    public static ReturnStmt ret(Expr<?> value) {
+        return new ReturnStmt(value);
+    }
 
     public static SimpleNameExpr str2name(String s) {
         return new SimpleNameExpr(s);
@@ -82,4 +94,15 @@ public final class CodeBuilder {
         return new VarDeclExpr(type, name, init);
     }
 
+    public static IfStmt when(Expr<?> cond, BlockStmt thenStmt) {
+        return new IfStmt(cond, thenStmt, null);
+    }
+
+    public static IfStmt when(Expr<?> cond, BlockStmt thenStmt, BlockStmt elseStmt) {
+        return new IfStmt(cond, thenStmt, elseStmt);
+    }
+
+    public static WhileStmt whileStmt(Expr<?> cond, BlockStmt body) {
+        return new WhileStmt(cond, body);
+    }
 }

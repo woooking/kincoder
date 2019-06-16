@@ -16,6 +16,13 @@ public class CollectionUtil {
             .build();
     }
 
+    public <T, K extends T> List<T> cons(List<? extends T> list1, K value) {
+        return ImmutableList.<T>builder()
+            .addAll(list1)
+            .add(value)
+            .build();
+    }
+
     public <K, V> Map<K, V> cons(Map<K, V> map, K key, V value) {
         return ImmutableMap.<K, V>builder()
             .putAll(map)

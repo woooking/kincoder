@@ -22,6 +22,10 @@ public class Printer implements Visitor<PrintContext, String> {
         this.config = config;
     }
 
+    public String print(Node<?> node) {
+        return node.accept(this, new PrintContext(""));
+    }
+
     @Override
     public String visit(Node<?> node, PrintContext arg) {
         throw new RuntimeException("Never");
@@ -252,7 +256,7 @@ public class Printer implements Visitor<PrintContext, String> {
 
     @Builder
     public static class PrintConfig {
-        private final int indentWidth = 4;
+        @Builder.Default private final int indentWidth = 4;
         private final Function<Integer, String> holeString;
     }
 }

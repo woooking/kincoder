@@ -115,7 +115,7 @@ public class KnowledgeGraphBuilder {
                         }
 
                     }
-                } catch (UnsolvedSymbolException | UnsupportedOperationException e) {
+                } catch (UnsolvedSymbolException | UnsupportedOperationException | IllegalArgumentException e) {
                     if (builderConfig.isPrintUnsolvedSymbol()) {
                         log.warn("Unsolved Symbol", e);
                     }
