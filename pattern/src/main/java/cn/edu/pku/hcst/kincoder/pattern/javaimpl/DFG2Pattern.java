@@ -12,6 +12,7 @@ import cn.edu.pku.hcst.kincoder.pattern.javaimpl.dfg.DFG;
 import cn.edu.pku.hcst.kincoder.pattern.javaimpl.dfg.DFGEdge;
 import cn.edu.pku.hcst.kincoder.pattern.javaimpl.dfg.DFGNode;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import de.parsemis.graph.Graph;
 
@@ -48,8 +49,20 @@ public class DFG2Pattern implements PatternGenerator<DFGNode, DFGEdge, DFG, Skel
 
 
     private BlockStmt generateCode(Node node, Set<Node> nodes, Map<String, NameExpr<?>> names) {
-        assert node instanceof MethodDeclaration && ((MethodDeclaration) node).getBody().isPresent();
-        var stmts = ((MethodDeclaration) node).getBody().get().accept(new DFG2PatternStatementVisitor(codeUtil, nodes, holeFactory), names);
-        return CodeBuilder.block(stmts.getLeft());
+        if (node instanceof MethodDeclaration || node instanceof ConstructorDeclaration) {
+            com.github.javaparser.ast.stmt.BlockStmt body;
+            if (node instanceof MethodDeclaration) {
+                if (((MethodDeclaration) node).getBody().isEmpty()) {
+                    return CodeBuilder.block();
+                }
+                body = ((MethodDeclaration) node).getBody().get();
+            } else {
+                body = ((ConstructorDeclaration) node).getBody();
+            }
+
+            var stmts = body.accept(new DFG2PatternStatementVisitor(codeUtil, nodes, holeFactory), names);
+            return CodeBuilder.block(stmts.getLeft());
+        }
+        return CodeBuilder.block();
     }
 }

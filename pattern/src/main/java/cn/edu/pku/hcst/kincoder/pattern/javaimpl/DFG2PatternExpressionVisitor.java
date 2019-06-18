@@ -16,13 +16,14 @@ import cn.edu.pku.hcst.kincoder.common.utils.Tuple3;
 import cn.edu.pku.hcst.kincoder.kg.utils.CodeUtil;
 import cn.edu.pku.hcst.kincoder.pattern.javaimpl.DFG2PatternExpressionVisitor.GenExprResult;
 import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.visitor.GenericVisitorWithDefaults;
-import com.github.javaparser.resolution.UnsolvedSymbolException;
 import com.github.javaparser.resolution.declarations.ResolvedParameterDeclaration;
 import com.google.common.collect.Streams;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,7 @@ import static cn.edu.pku.hcst.kincoder.common.utils.CodeBuilder.*;
 import static cn.edu.pku.hcst.kincoder.common.utils.CollectionUtil.concat;
 import static cn.edu.pku.hcst.kincoder.common.utils.CollectionUtil.cons;
 
+@Slf4j
 public class DFG2PatternExpressionVisitor extends GenericVisitorWithDefaults<GenExprResult, Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>>> {
     @Value
     static class GenExprResult {
@@ -237,8 +239,8 @@ public class DFG2PatternExpressionVisitor extends GenericVisitorWithDefaults<Gen
 
     @Override
     public GenExprResult visit(ObjectCreationExpr n, Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>> arg) {
+        try {
         var receiverType = (ReferenceType) codeUtil.resolvedTypeToType(n.getType().resolve());
-
         var resolved = n.resolve();
         var paramTypes = IntStream.range(0, resolved.getNumberOfParams())
             .mapToObj(resolved::getParam)
@@ -250,6 +252,9 @@ public class DFG2PatternExpressionVisitor extends GenericVisitorWithDefaults<Gen
         return nodes.contains(n)
             ? new GenExprResult(create(receiverType, r.getV1().stream().map(Arg::getValue).collect(Collectors.toList())), r.getV2(), r.getV3())
             : new GenExprResult(holeFactory.create(), r.getV2(), r.getV3());
+        } catch (Throwable e) {
+            return holeResult(arg);
+        }
     }
 
     @Override
@@ -278,7 +283,7 @@ public class DFG2PatternExpressionVisitor extends GenericVisitorWithDefaults<Gen
                 return new GenExprResult(holeFactory.create(), arg, List.of());
             }
 
-        } catch (UnsolvedSymbolException e) {
+        } catch (Throwable e) {
             return new GenExprResult(holeFactory.create(), arg, List.of());
         }
     }
@@ -290,5 +295,15 @@ public class DFG2PatternExpressionVisitor extends GenericVisitorWithDefaults<Gen
         return rs1(n, n.getExpression(), e -> unary(op.asString(), e, op.isPrefix()), arg);
     }
 
+    @Override
+    public GenExprResult defaultAction(Node n, Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>> arg) {
+        log.warn("Not implemented {}", n.getClass());
+        return holeResult(arg);
+    }
 
+    @Override
+    public GenExprResult defaultAction(NodeList n, Map<String, cn.edu.pku.hcst.kincoder.common.skeleton.model.expr.NameExpr<?>> arg) {
+        log.warn("Not implemented {}", n.getClass());
+        return holeResult(arg);
+    }
 }

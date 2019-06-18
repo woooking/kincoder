@@ -9,6 +9,7 @@ import cn.edu.pku.hcst.kincoder.pattern.api.PatternMiner;
 import cn.edu.pku.hcst.kincoder.pattern.javaimpl.DFG2Pattern;
 import cn.edu.pku.hcst.kincoder.pattern.javaimpl.JavaDFGGenerator;
 import cn.edu.pku.hcst.kincoder.pattern.javaimpl.dfg.DFGEdge;
+import cn.edu.pku.hcst.kincoder.pattern.javaimpl.dfg.DFGFactory;
 import cn.edu.pku.hcst.kincoder.pattern.javaimpl.dfg.DFGNode;
 import com.google.inject.Guice;
 import lombok.extern.slf4j.Slf4j;
@@ -23,15 +24,15 @@ public class PatternMiningRunner {
         var yaml = new Yaml();
 
         try (var configFile = PatternMiningRunner.class.getResourceAsStream("/application.yaml")) {
-//            var config = yaml.loadAs(configFile, PatternMiningRunner.class);
-            var injector = Guice.createInjector(new MinerModule());
+            var config = yaml.loadAs(configFile, PatternMiningConfig.class);
+            var injector = Guice.createInjector(new MinerModule(config));
             var codeUtil = injector.getInstance(CodeUtil.class);
-//            builder.build();
+            var patternConfig = injector.getInstance(PatternConfig.class);
+            var dfgFactory = injector.getInstance(DFGFactory.class);
 
-            var patternConfig = PatternConfig.builder().build();
-            var clientCodeRoot = new File(patternConfig.getClientCodeDir());
-            var graphGenerator = new JavaDFGGenerator();
-//
+            var clientCodeRoot = new File(config.getClientCodeDir());
+            var graphGenerator = new JavaDFGGenerator(codeUtil, patternConfig, dfgFactory);
+
             var miner = new PatternMiner<>(
                 clientCodeRoot,
                 graphGenerator,
@@ -43,6 +44,7 @@ public class PatternMiningRunner {
 
             var result = miner.process(MinerSetting.builder().build());
             result.forEach(r -> {
+                System.out.println("----------");
                 var printer = new Printer(PrintConfig.builder().holeString(id -> "<HOLE>").build());
                 log.info(printer.print(r.getStmts()));
             });

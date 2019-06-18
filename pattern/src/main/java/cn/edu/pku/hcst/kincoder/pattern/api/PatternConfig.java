@@ -1,11 +1,12 @@
 package cn.edu.pku.hcst.kincoder.pattern.api;
 
-import lombok.Builder;
-import lombok.Getter;
+import java.util.List;
 
-@Getter
-@Builder
-public class PatternConfig {
-    private final String clientCodeDir;
-    private final boolean debug;
+public interface PatternConfig {
+    List<String> getSourceCodeDirs();
+    boolean isDebug();
+    List<String> getDfgNodeFilters();
+    default Integer getNodeSizeLimit() {
+        return null;
+    }
 }

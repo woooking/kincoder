@@ -3,9 +3,11 @@ package cn.edu.pku.hcst.kincoder.pattern.javaimpl.dfg;
 import de.parsemis.parsers.LabelParser;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.regex.Pattern;
 
+@ToString
 @EqualsAndHashCode
 public class DFGNode {
     public static class Parser implements LabelParser<DFGNode> {
@@ -28,7 +30,7 @@ public class DFGNode {
     private final Type type;
     private final String info;
 
-    DFGNode(Type type, String info) {
+    public DFGNode(Type type, String info) {
         this.type = type;
         this.info = info;
     }

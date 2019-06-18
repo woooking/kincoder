@@ -3,7 +3,6 @@ package cn.edu.pku.hcst.kincoder.common.utils;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.ReferenceType;
 import cn.edu.pku.hcst.kincoder.common.skeleton.model.type.Type;
 import com.google.common.base.CaseFormat;
-import lombok.experimental.UtilityClass;
 
 import java.util.Arrays;
 import java.util.List;
@@ -11,7 +10,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-@UtilityClass
 public final class ElementUtil {
     private final static Pattern methodPattern = Pattern.compile(".*\\(([a-zA-Z.,\\[\\] ]*)\\)");
 
@@ -24,7 +22,7 @@ public final class ElementUtil {
      * @param qualifiedName 类的全限定名称
      * @return 类的简化名称
      */
-    public String qualifiedName2Simple(String qualifiedName) {
+    public static String qualifiedName2Simple(String qualifiedName) {
         var segments = qualifiedName.split("\\.");
         return segments[segments.length - 1];
     }
@@ -38,7 +36,7 @@ public final class ElementUtil {
      * @param signature 方法的签名
      * @return 参数类型列表
      */
-    public List<Type> methodParams(String signature) {
+    public static List<Type> methodParams(String signature) {
         var matcher = methodPattern.matcher(signature);
         if (matcher.find()) {
             var g = matcher.group(1);
@@ -56,7 +54,7 @@ public final class ElementUtil {
      * @param signature 方法的签名
      * @return 接受者类型的全限定名称
      */
-    public Optional<ReferenceType> methodReceiverType(String signature) {
+    public static Optional<ReferenceType> methodReceiverType(String signature) {
         var matcher = methodPattern.matcher(signature);
         if (matcher.find()) {
             var g = matcher.group(1);
@@ -66,7 +64,7 @@ public final class ElementUtil {
         return Optional.empty();
     }
 
-    public String[] lowerCamelCaseToPhrase(String element) {
+    public static String[] lowerCamelCaseToPhrase(String element) {
         return CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, element).split("_");
     }
 }

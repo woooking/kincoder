@@ -1,5 +1,6 @@
 package cn.edu.pku.hcst.kincoder.pattern.api;
 
+import cn.edu.pku.hcst.kincoder.pattern.utils.GraphUtil;
 import com.google.common.collect.Sets;
 import de.parsemis.graph.Edge;
 import de.parsemis.graph.Graph;
@@ -9,7 +10,10 @@ import de.parsemis.parsers.LabelParser;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -55,11 +59,12 @@ public class PatternMiner<Data, N, E, G extends Graph<N, E>, R> {
 
     public Collection<R> process(MinerSetting minerSetting) {
         var graphs = graphGenerator.generate(source);
+        graphs.forEach(GraphUtil::print);
         log.info(String.format("总数据流图数: %d", graphs.size()));
         var freqFragments = mine(graphs, minerSetting.toParsemisSettings(nodeParser, edgeParser));
         var subFiltered = filterSubGraph ? resultFilter(freqFragments) : freqFragments.stream().map(Fragment::toGraph).collect(Collectors.toList());
         log.info(String.format("频繁子图数: %d", subFiltered.size()));
-//        subFiltered.foreach(GraphUtil.printGraph())
+        subFiltered.forEach(GraphUtil::print);
         return subFiltered.stream().map(r -> patternGenerator.generate(graphs, r)).collect(Collectors.toList());
     }
 

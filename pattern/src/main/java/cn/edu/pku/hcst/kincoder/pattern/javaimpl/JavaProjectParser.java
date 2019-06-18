@@ -15,6 +15,7 @@ import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.Problem;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.CompilationUnit.Storage;
+import com.github.javaparser.ast.body.CallableDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.stmt.BlockStmt;
@@ -97,7 +98,8 @@ public class JavaProjectParser implements Pipe<Path, Collection<DFG>> {
 
         this.cus2cfgs = cus ->
             cus.stream()
-                .flatMap(cu -> Stream.concat(cu.findAll(ConstructorDeclaration.class).stream(), cu.findAll(MethodDeclaration.class).stream()))
+                .flatMap(cu -> cu.findAll(CallableDeclaration.class).stream())
+                .map(decl -> (CallableDeclaration<?>) decl)
                 .flatMap(decl -> {
                     try {
                         var path = decl.findCompilationUnit().flatMap(CompilationUnit::getStorage).map(Storage::getPath).orElse(null);
@@ -128,6 +130,11 @@ public class JavaProjectParser implements Pipe<Path, Collection<DFG>> {
         this.cfgs2dfgs = cfgs -> cfgs.stream()
             .map(dfgFactory::create)
             .collect(Collectors.toList());
+    }
+
+    public JavaProjectParser register(ListFilter<DFG> filter) {
+        dfgFilters.add(filter);
+        return this;
     }
 
     @Override

@@ -38,6 +38,9 @@ public class DFGNodeFactory {
         if (stmt instanceof IRFieldAccess) {
             return new DFGNode(Type.FIELD_ACCESS, ((IRFieldAccess) stmt).getField());
         }
+        if (stmt instanceof IRStaticFieldAccess) {
+            return new DFGNode(Type.FIELD_ACCESS, ((IRStaticFieldAccess) stmt).getTy());
+        }
         if (stmt instanceof IRMethodInvocation) {
             return new DFGNode(Type.METHOD_INVOCATION, ((IRMethodInvocation) stmt).getQualifiedSignature());
         }
@@ -69,7 +72,7 @@ public class DFGNodeFactory {
             return new DFGNode(Type.OP, "THROW");
         }
 
-        throw new UnsupportedOperationException("Unknown statement type");
+        throw new UnsupportedOperationException(String.format("Unknown statement type %s", stmt.getClass()));
     }
 
     public Set<DFGNode> statement2Type(IRStatement stmt) {

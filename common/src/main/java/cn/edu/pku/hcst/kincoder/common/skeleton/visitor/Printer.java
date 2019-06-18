@@ -28,12 +28,12 @@ public class Printer implements Visitor<PrintContext, String> {
 
     @Override
     public String visit(Node<?> node, PrintContext arg) {
-        throw new RuntimeException("Never");
+        throw new RuntimeException(String.format("Not implemented. %s", node.getClass()));
     }
 
     @Override
     public String visit(Arg node, PrintContext arg) {
-        return visit(node.getValue(), arg);
+        return node.getValue().accept(this, arg);
     }
 
     @Override
@@ -41,7 +41,7 @@ public class Printer implements Visitor<PrintContext, String> {
         var indented = arg.withIndent(arg.getIndent() + " ".repeat(config.indentWidth));
 
         var statements = node.getStatements().stream()
-            .map(s -> visit(s, indented))
+            .map(s -> s.accept(this, indented))
             .collect(Collectors.joining("\n"));
 
         return String.format("%s{\n%s\n%s}", arg.getIndent(), statements, arg.getIndent());
@@ -49,7 +49,7 @@ public class Printer implements Visitor<PrintContext, String> {
 
     @Override
     public String visit(ExprStmt node, PrintContext arg) {
-        return String.format("%s%s;", arg.getIndent(), visit(node.getExpr(), arg));
+        return String.format("%s%s;", arg.getIndent(), node.getExpr().accept(this, arg));
     }
 
     @Override
@@ -57,8 +57,8 @@ public class Printer implements Visitor<PrintContext, String> {
         var indented = arg.withIndent(arg.getIndent() + " ".repeat(config.indentWidth));
 
         return node.getElseBody() == null
-            ? String.format("%sif (%s) {\n%s\n%s}", arg.getIndent(), visit(node.getCond(), arg), visit(node.getThenBody(), indented), arg.getIndent())
-            : String.format("%sif (%s) {\n%s\n%s} else {\n%s\n%s}", arg.getIndent(), visit(node.getCond(), arg), visit(node.getThenBody(), indented), arg.getIndent(), visit(node.getElseBody(), indented), arg.getIndent());
+            ? String.format("%sif (%s) {\n%s\n%s}", arg.getIndent(), node.getCond().accept(this, arg), node.getThenBody().accept(this, indented), arg.getIndent())
+            : String.format("%sif (%s) {\n%s\n%s} else {\n%s\n%s}", arg.getIndent(), node.getCond().accept(this, arg), node.getThenBody().accept(this, indented), arg.getIndent(), node.getElseBody().accept(this, indented), arg.getIndent());
     }
 
     @Override
@@ -67,10 +67,10 @@ public class Printer implements Visitor<PrintContext, String> {
 
         return String.format("%sfor (%s; %s; %s) {\n%s\n%s}",
             arg.getIndent(),
-            node.getInits().stream().map(i -> visit(i, arg)).collect(Collectors.joining(", ")),
-            node.getCond() == null ? "" : visit(node.getCond(), arg),
-            node.getUpdates().stream().map(i -> visit(i, arg)).collect(Collectors.joining(", ")),
-            visit(node.getBody(), indented),
+            node.getInits().stream().map(i -> i.accept(this, arg)).collect(Collectors.joining(", ")),
+            node.getCond() == null ? "" : node.getCond().accept(this, arg),
+            node.getUpdates().stream().map(i -> i.accept(this, arg)).collect(Collectors.joining(", ")),
+            node.getBody().accept(this, indented),
             arg.getIndent()
         );
     }
@@ -83,8 +83,8 @@ public class Printer implements Visitor<PrintContext, String> {
             arg.getIndent(),
             node.getType().describe(),
             node.getName(),
-            visit(node.getIterable(), arg),
-            visit(node.getBody(), indented),
+            node.getIterable().accept(this, arg),
+            node.getBody().accept(this, indented),
             arg.getIndent()
         );
     }
@@ -95,8 +95,8 @@ public class Printer implements Visitor<PrintContext, String> {
 
         return String.format("%swhile (%s) {\n%s\n%s}",
             arg.getIndent(),
-            visit(node.getCond(), arg),
-            visit(node.getBody(), indented),
+            node.getCond().accept(this, arg),
+            node.getBody().accept(this, indented),
             arg.getIndent()
         );
     }
@@ -105,7 +105,7 @@ public class Printer implements Visitor<PrintContext, String> {
     public String visit(ReturnStmt node, PrintContext arg) {
         return String.format("%sreturn%s;",
             arg.getIndent(),
-            node.getValue() == null ? "" : " " + visit(node.getValue(), arg)
+            node.getValue() == null ? "" : " " + node.getValue().accept(this, arg)
         );
     }
 
@@ -116,31 +116,31 @@ public class Printer implements Visitor<PrintContext, String> {
 
     @Override
     public String visit(AssignExpr node, PrintContext arg) {
-        return String.format("%s = %s", visit(node.getTarget(), arg), visit(node.getSource(), arg));
+        return String.format("%s = %s", node.getTarget().accept(this, arg), node.getSource().accept(this, arg));
     }
 
     @Override
     public String visit(ArrayCreationExpr node, PrintContext arg) {
         return String.format("new %s[] {%s}",
             node.getComponentType().describe(),
-            node.getInits().stream().map(i -> visit(i, arg)).collect(Collectors.joining(", "))
+            node.getInits().stream().map(i -> i.accept(this, arg)).collect(Collectors.joining(", "))
         );
     }
 
     @Override
     public String visit(BinaryExpr node, PrintContext arg) {
-        return String.format("%s %s %s", visit(node.getLeft(), arg), node.getOp(), visit(node.getRight(), arg));
+        return String.format("%s %s %s", node.getLeft().accept(this, arg), node.getOp(), node.getRight().accept(this, arg));
     }
 
     @Override
     public String visit(EnumConstantExpr node, PrintContext arg) {
-        return String.format("%s.%s", node.getEnumType().describe(), visit(node.getName(), arg));
+        return String.format("%s.%s", node.getEnumType().describe(), node.getName().accept(this, arg));
     }
 
     @Override
     public String visit(MethodCallExpr node, PrintContext arg) {
         return String.format("%s.%s(%s)",
-            visit(node.getReceiver().getRight(), arg),
+            node.getReceiver().getRight().accept(this, arg),
             node.getName(),
             node.getArgs().stream().map(i -> visit(i, arg)).collect(Collectors.joining(", "))
         );
@@ -166,8 +166,8 @@ public class Printer implements Visitor<PrintContext, String> {
     @Override
     public String visit(UnaryExpr node, PrintContext arg) {
         return String.format("%s%s",
-            node.isPrefix() ? node.getOpe() : visit(node.getExpr(), arg),
-            node.isPrefix() ? visit(node.getExpr(), arg) : node.getOpe()
+            node.isPrefix() ? node.getOpe() : node.getExpr().accept(this, arg),
+            node.isPrefix() ? node.getExpr().accept(this, arg) : node.getOpe()
         );
     }
 
@@ -183,19 +183,19 @@ public class Printer implements Visitor<PrintContext, String> {
 
     @Override
     public String visit(StaticFieldAccessExpr node, PrintContext arg) {
-        return String.format("%s.%s", node.getReceiverType().describe(), visit(node.getName(), arg));
+        return String.format("%s.%s", node.getReceiverType().describe(), node.getName().accept(this, arg));
     }
 
     @Override
     public String visit(FieldAccessExpr node, PrintContext arg) {
-        return String.format("%s.%s", visit(node.getReceiver(), arg), visit(node.getName(), arg));
+        return String.format("%s.%s", node.getReceiver().accept(this, arg), node.getName().accept(this, arg));
     }
 
     @Override
     public String visit(VarDeclExpr node, PrintContext arg) {
         return node.getInit() == null
-            ? String.format("%s %s", node.getType().describe(), visit(node.getName(), arg))
-            : String.format("%s %s = %s", node.getType().describe(), visit(node.getName(), arg), visit(node.getInit(), arg));
+            ? String.format("%s %s", node.getType().describe(), node.getName().accept(this, arg))
+            : String.format("%s %s = %s", node.getType().describe(), node.getName().accept(this, arg), node.getInit().accept(this, arg));
     }
 
     @Override

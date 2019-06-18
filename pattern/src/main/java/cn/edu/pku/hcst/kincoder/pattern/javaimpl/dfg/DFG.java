@@ -12,11 +12,7 @@ import de.parsemis.graph.Node;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Predicate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DFG extends ListGraph<DFGNode, DFGEdge> {
@@ -33,7 +29,8 @@ public class DFG extends ListGraph<DFGNode, DFGEdge> {
     public Set<com.github.javaparser.ast.Node> recover(Set<Node<DFGNode, DFGEdge>> nodes) {
         return nodes.stream()
             .map(map::get)
-            .filter(Predicate.not(Set::isEmpty))
+            .filter(Objects::nonNull)
+//            .filter(Predicate.not(Set::isEmpty))
             .flatMap(Collection::stream)
             .collect(Collectors.toSet());
     }
@@ -62,18 +59,18 @@ public class DFG extends ListGraph<DFGNode, DFGEdge> {
                 var other = outEdge.getOtherNode(current);
                 if (nodeMap.containsValue(other)) {
                     var mappedDDGBlock = nodeMap.inverse().get(other);
-                    if (Streams.stream(node.outgoingEdgeIterator()).map(o -> o.getOtherNode(node)).noneMatch(o -> o.equals(mappedDDGBlock))) outDiff = true;
+                    if (Streams.stream(node.outgoingEdgeIterator()).map(o -> o.getOtherNode(node)).noneMatch(o -> o.getLabel().equals(mappedDDGBlock.getLabel()))) outDiff = true;
                 }
             }
 
             var inDiff = false;
             var ins = current.incommingEdgeIterator();
-            while (ins.hasNext()) {
+            while (ins.hasNext() && !inDiff) {
                 var inEdge = ins.next();
                 var other = inEdge.getOtherNode(current);
                 if (nodeMap.containsValue(other)) {
                     var mappedDDGBlock = nodeMap.inverse().get(other);
-                    if (Streams.stream(node.outgoingEdgeIterator()).map(o -> o.getOtherNode(mappedDDGBlock)).noneMatch(o -> o.equals(node))) inDiff = true;
+                    if (Streams.stream(node.incommingEdgeIterator()).map(o -> o.getOtherNode(node)).noneMatch(o -> o.getLabel().equals(mappedDDGBlock.getLabel()))) inDiff = true;
                 }
             }
 

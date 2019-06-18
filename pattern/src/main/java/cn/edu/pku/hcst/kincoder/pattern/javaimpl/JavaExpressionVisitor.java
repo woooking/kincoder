@@ -208,7 +208,7 @@ public class JavaExpressionVisitor extends GenericVisitorWithDefaults<Optional<I
         if (target.isFieldAccessExpr() && target.asFieldAccessExpr().getScope().isThisExpr()) {
             return acceptExpr(arg, n, n.getValue(), (source, ty) -> {
                 if (n.getOperator() == AssignExpr.Operator.ASSIGN) {
-                    cfg.writeVar(target.asNameExpr().getNameAsString(), arg, source);
+                    cfg.writeVar(target.asFieldAccessExpr().getNameAsString(), arg, source);
                     return source;
                 }
 
