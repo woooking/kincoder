@@ -157,15 +157,22 @@ public class KnowledgeGraphBuilder {
     }
 
     private TypeEntity getIterableType(ResolvedReferenceTypeDeclaration resolved) {
-        return resolved.getAllAncestors().stream()
-            .filter(ancestor -> ancestor.getQualifiedName().equals("java.lang.Iterable"))
-            .findFirst()
-            .map(type -> type.getGenericParameterByName("T").get())
-            .filter(ResolvedType::isReferenceType)
-            .map(ResolvedType::asReferenceType)
-            .map(ResolvedReferenceType::getQualifiedName)
-            .map(entityManager::getTypeEntityOrCreate)
-            .orElse(null);
+        try {
+            return resolved.getAllAncestors().stream()
+                .filter(ancestor -> ancestor.getQualifiedName().equals("java.lang.Iterable"))
+                .findFirst()
+                .map(type -> type.getGenericParameterByName("T").get())
+                .filter(ResolvedType::isReferenceType)
+                .map(ResolvedType::asReferenceType)
+                .map(ResolvedReferenceType::getQualifiedName)
+                .map(entityManager::getTypeEntityOrCreate)
+                .orElse(null);
+        } catch (UnsolvedSymbolException e) {
+            if (builderConfig.isPrintUnsolvedSymbol()) {
+                log.warn("Unsolved Symbol", e);
+            }
+            return null;
+        }
     }
 
     private ResolvedType getComponentTypeRecursively(ResolvedType ty) {
