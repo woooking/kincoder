@@ -4,6 +4,8 @@ plugins {
 }
 
 dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.8'
+    annotationProcessor 'org.projectlombok:lombok:1.18.8'
     compileOnly group: 'org.jetbrains', name: 'annotations', version: '17.0.0'
     compile group: 'edu.stanford.nlp', name: 'stanford-corenlp', version: '3.9.2'
     compile project(':common')

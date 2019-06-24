@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public final class ElementUtil {
-    private final static Pattern methodPattern = Pattern.compile(".*\\(([a-zA-Z.,\\[\\] ]*)\\)");
+    private final static Pattern methodPattern = Pattern.compile("(.*)\\(([a-zA-Z.,\\[\\] ]*)\\)");
 
     /**
      * 从类的全限定名称中提取简化名称，即以'.'分割后的最后一段字符串
@@ -39,7 +39,7 @@ public final class ElementUtil {
     public static List<Type> methodParams(String signature) {
         var matcher = methodPattern.matcher(signature);
         if (matcher.find()) {
-            var g = matcher.group(1);
+            var g = matcher.group(2);
             return Arrays.stream(g.split(", ")).map(Type::fromString).collect(Collectors.toList());
         } else {
             throw new RuntimeException(String.format("Given string %s isn't a valid method signature", signature));

@@ -16,7 +16,7 @@ public class PatternEntity {
     @Id
     @GeneratedValue
     private Long id;
-    private String pattern;
+    private String skeleton;
 
     @Relationship(type = "HAS_TYPE")
     private Set<TypeEntity> hasTypes = new HashSet<>();
@@ -24,15 +24,15 @@ public class PatternEntity {
     @Relationship(type = "HAS_METHOD")
     private Set<MethodEntity> hasMethods = new HashSet<>();
 
-    public static PatternEntity create(String pattern) {
-        return new PatternEntity(pattern);
+    public static PatternEntity create(String skeleton) {
+        return new PatternEntity(skeleton);
     }
 
     protected PatternEntity() {
     }
 
-    protected PatternEntity(String pattern) {
-        this.pattern = pattern;
+    protected PatternEntity(String skeleton) {
+        this.skeleton = skeleton;
     }
 
     public void addHasType(TypeEntity typeEntity) {
@@ -51,8 +51,8 @@ public class PatternEntity {
         hasMethods.addAll(methodEntitys);
     }
 
-    public String getPattern() {
-        return pattern;
+    public String getSkeleton() {
+        return skeleton;
     }
 
     public Set<TypeEntity> getHasTypes() {

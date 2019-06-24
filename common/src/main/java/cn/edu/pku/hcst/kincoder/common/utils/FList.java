@@ -3,10 +3,13 @@ package cn.edu.pku.hcst.kincoder.common.utils;
 import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 
+import java.util.Iterator;
 import java.util.List;
 
 public interface FList<T> {
     T getHead();
+
+    FList<T> getTail();
 
     int size();
 
@@ -24,6 +27,19 @@ public interface FList<T> {
         return new Cons<>(value, nil());
     }
 
+    static <T> FList<T> fromIterator(Iterator<T> ite) {
+        if (ite.hasNext()) {
+            var head = ite.next();
+            var tail = fromIterator(ite);
+            return cons(head, tail);
+        }
+        return nil();
+    }
+
+    default boolean isEmpty() {
+        return size() == 0;
+    }
+
     class Nil<T> implements FList<T> {
 
         private Nil() {
@@ -32,6 +48,11 @@ public interface FList<T> {
         @Override
         public T getHead() {
             throw new RuntimeException("Can not get head from Nil!");
+        }
+
+        @Override
+        public FList<T> getTail() {
+            throw new RuntimeException("Can not get tail from Nil!");
         }
 
         @Override

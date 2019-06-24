@@ -2,6 +2,7 @@ package cn.edu.pku.hcst.kincoder.kg;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import org.jetbrains.annotations.Nullable;
 import org.neo4j.ogm.config.Configuration;
 import org.neo4j.ogm.session.Session;
@@ -9,6 +10,7 @@ import org.neo4j.ogm.session.SessionFactory;
 
 import java.util.Objects;
 
+@Singleton
 public class KnowledgeGraphSessionFactory implements Provider<Session> {
     private final Configuration configuration;
     @Nullable

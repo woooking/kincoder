@@ -22,7 +22,11 @@ public class CmdStarter {
     public static void main(String[] args) {
         KinCoderConfig kinCoderConfig = KinCoderConfig.builder().build();
         NlpServerConfig nlpServerConfig = NlpServerConfig.builder().build();
-        KnowledgeGraphConfig knowledgeGraphConfig = KnowledgeGraphConfig.builder().build();
+        KnowledgeGraphConfig knowledgeGraphConfig = KnowledgeGraphConfig.builder()
+            .uri("bolt://162.105.88.99:10002")
+            .username("neo4j")
+            .password("neo4jpoi")
+            .build();
 
         var task = scanner.nextLine();
         var service = KinCoderService.start(kinCoderConfig, nlpServerConfig, knowledgeGraphConfig);

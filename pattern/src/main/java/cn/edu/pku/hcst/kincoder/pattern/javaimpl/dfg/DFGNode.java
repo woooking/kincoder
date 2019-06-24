@@ -7,6 +7,7 @@ import lombok.ToString;
 
 import java.util.regex.Pattern;
 
+@Getter
 @ToString
 @EqualsAndHashCode
 public class DFGNode {

@@ -57,7 +57,7 @@ public class PatternMatcher {
 
         val score = 1.0 - (double) queryWords.size() / (double) queryWords.size();
 
-        var skeleton = objectMapper.readValue(pattern.getPattern(), Skeleton.class);
+        var skeleton = objectMapper.readValue(pattern.getSkeleton(), Skeleton.class);
         return Pair.of(skeleton, score);
     }
 

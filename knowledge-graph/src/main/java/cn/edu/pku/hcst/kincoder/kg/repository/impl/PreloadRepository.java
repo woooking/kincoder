@@ -12,7 +12,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class PreloadRepository implements Repository {
-    private final Session session;
     private final Map<String, TypeEntity> types;
     private final Map<String, MethodEntity> methods;
     private final Map<String, EnumEntity> enums;
@@ -20,7 +19,6 @@ public class PreloadRepository implements Repository {
 
     @Inject
     public PreloadRepository(Session session) {
-        this.session = session;
         this.types = session.loadAll(TypeEntity.class).stream().collect(Collectors.toMap(
             TypeEntity::getQualifiedName,
             Function.identity()

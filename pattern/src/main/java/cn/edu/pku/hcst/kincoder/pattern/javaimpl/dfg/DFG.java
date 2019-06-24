@@ -1,5 +1,6 @@
 package cn.edu.pku.hcst.kincoder.pattern.javaimpl.dfg;
 
+import cn.edu.pku.hcst.kincoder.common.utils.FList;
 import cn.edu.pku.hcst.kincoder.common.utils.Pair;
 import cn.edu.pku.hcst.kincoder.pattern.javaimpl.cfg.CFG;
 import com.google.common.collect.BiMap;
@@ -12,7 +13,10 @@ import de.parsemis.graph.Node;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class DFG extends ListGraph<DFGNode, DFGEdge> {
@@ -30,21 +34,22 @@ public class DFG extends ListGraph<DFGNode, DFGEdge> {
         return nodes.stream()
             .map(map::get)
             .filter(Objects::nonNull)
-//            .filter(Predicate.not(Set::isEmpty))
             .flatMap(Collection::stream)
             .collect(Collectors.toSet());
     }
 
 
     public Pair<Boolean, Set<Node<DFGNode, DFGEdge>>> isSuperGraph(Graph<DFGNode, DFGEdge> graph) {
-        var ite = graph.nodeIterator();
-        if (!ite.hasNext()) {
+        var list = FList.fromIterator(graph.nodeIterator());
+
+        if (list.isEmpty()) {
             return Pair.of(true, Set.of());
         }
-        return isSuperGraph(HashBiMap.create(), ite.next(), ite);
+
+        return isSuperGraph(HashBiMap.create(), list.getHead(), list.getTail());
     }
 
-    public Pair<Boolean, Set<Node<DFGNode, DFGEdge>>> isSuperGraph(BiMap<Node<DFGNode, DFGEdge>, Node<DFGNode, DFGEdge>> nodeMap, Node<DFGNode, DFGEdge> current, Iterator<Node<DFGNode, DFGEdge>> remain){
+    public Pair<Boolean, Set<Node<DFGNode, DFGEdge>>> isSuperGraph(BiMap<Node<DFGNode, DFGEdge>, Node<DFGNode, DFGEdge>> nodeMap, Node<DFGNode, DFGEdge> current, FList<Node<DFGNode, DFGEdge>> remain){
         Pair<Boolean, Set<Node<DFGNode, DFGEdge>>> result = Pair.of(false, Set.of());
         var ite = nodeIterator();
         while (ite.hasNext() && !result.getLeft()) {
@@ -76,13 +81,13 @@ public class DFG extends ListGraph<DFGNode, DFGEdge> {
 
             if (!inDiff && !outDiff) {
                 nodeMap.put(node, current);
-                if (remain.hasNext()) {
-                    var p = isSuperGraph(nodeMap, remain.next(), remain);
+                if (remain.isEmpty()) {
+                    result = Pair.of(true, nodeMap.keySet());
+                } else {
+                    var p = isSuperGraph(nodeMap, remain.getHead(), remain.getTail());
                     var newNodes = ImmutableSet.<Node<DFGNode, DFGEdge>>builder().addAll(p.getRight()).add(node).build();
                     if (p.getLeft()) result = Pair.of(true, newNodes);
                     nodeMap.remove(node);
-                } else {
-                    result = Pair.of(true, nodeMap.keySet());
                 }
             }
         }
